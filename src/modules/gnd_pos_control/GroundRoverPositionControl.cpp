@@ -366,7 +366,7 @@ GroundRoverPositionControl::task_main()
 
 		/* timed out - periodic check for _task_should_exit, etc. */
 		if (pret == 0) {
-			continue;
+			continue;//当continu时 后面的语句根本不会被打印的
 		}
 
 		/* this is undesirable but not much we can do - might want to flag unhappy status */
