@@ -318,7 +318,7 @@ GroundRoverAttitudeControl::task_main()
 				_actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y;
 				_actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x;
 				_actuators.control[actuator_controls_s::INDEX_YAW] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
-				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z;				
+				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z*2-1;				
 			}
 
 			/* lazily publish the setpoint only once available */
