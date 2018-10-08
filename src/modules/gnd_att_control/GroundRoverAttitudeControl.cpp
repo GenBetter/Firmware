@@ -260,6 +260,7 @@ GroundRoverAttitudeControl::task_main()
 			battery_status_poll();
 
 			/* decide if in stabilized or full manual control */
+			//这是自稳模式stablize控姿态，下面的else是纯手动直接控输出 manual
 			if (_vcontrol_mode.flag_control_rates_enabled) {
 				/* Run attitude controllers */
 				if (_vcontrol_mode.flag_control_attitude_enabled) {
@@ -317,7 +318,7 @@ GroundRoverAttitudeControl::task_main()
 				_actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y;
 				_actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x;
 				_actuators.control[actuator_controls_s::INDEX_YAW] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
-				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z;
+				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z;				
 			}
 
 			/* lazily publish the setpoint only once available */

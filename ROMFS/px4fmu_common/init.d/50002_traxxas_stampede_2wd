@@ -57,7 +57,8 @@ set MAV_TYPE 10
 set MIXER stampede
 
 # Provide ESC a constant 1500 us pulse
-set PWM_DISARMED 1500
+#下面是未解锁时 油门通道输出的PWM_disarmed,实际中解锁后油门通道立马变成了输出范围1500-2000，原因未知
+set PWM_DISARMED 1000
 set PWM_MAIN_REV2 1
 set PWM_MAX 2000
 set PWM_MIN 1000

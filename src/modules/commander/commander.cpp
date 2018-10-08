@@ -2771,8 +2771,8 @@ int commander_thread_main(int argc, char *argv[])
 
 			const bool in_armed_state = status.arming_state == vehicle_status_s::ARMING_STATE_ARMED || status.arming_state == vehicle_status_s::ARMING_STATE_ARMED_ERROR;
 			const bool arm_button_pressed = arm_switch_is_button == 1 && sp_man.arm_switch == manual_control_setpoint_s::SWITCH_POS_ON;
-
-			/* DISARM
+			
+			/* DISARM 摇杆上锁的处理
 			 * check if left stick is in lower left position or arm button is pushed or arm switch has transition from arm to disarm
 			 * and we are in MANUAL, Rattitude, or AUTO_READY mode or (ASSIST mode and landed)
 			 * do it only for rotary wings in manual mode or fixed wing if landed */
@@ -2781,10 +2781,13 @@ int commander_thread_main(int argc, char *argv[])
 					_last_sp_man_arm_switch == manual_control_setpoint_s::SWITCH_POS_ON &&
 					sp_man.arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF;
 
+			//1.处理上锁摇杆
+
 			if (in_armed_state &&
-				status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF &&
-				(status.is_rotary_wing || (!status.is_rotary_wing && land_detector.landed)) &&
-				(stick_in_lower_left || arm_button_pressed || arm_switch_to_disarm_transition) ) {
+				status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF
+				&&(stick_in_lower_left || arm_button_pressed || arm_switch_to_disarm_transition) ) {
+			
+				//2.检测到上锁的摇杆命令
 
 				if (internal_state.main_state != commander_state_s::MAIN_STATE_MANUAL &&
 						internal_state.main_state != commander_state_s::MAIN_STATE_ACRO &&
@@ -2794,6 +2797,7 @@ int commander_thread_main(int argc, char *argv[])
 					print_reject_arm("NOT DISARMING: Not in manual mode or landed yet.");
 
 				} else if ((stick_off_counter == rc_arm_hyst && stick_on_counter < rc_arm_hyst) || arm_switch_to_disarm_transition) {
+					//3.多次检测确定摇杆想上锁  则下面执行上锁的命令
 					/* disarm to STANDBY if ARMED or to STANDBY_ERROR if ARMED_ERROR */
 					arming_state_t new_arming_state = (status.arming_state == vehicle_status_s::ARMING_STATE_ARMED ? vehicle_status_s::ARMING_STATE_STANDBY :
 									   vehicle_status_s::ARMING_STATE_STANDBY_ERROR);
@@ -2814,8 +2818,8 @@ int commander_thread_main(int argc, char *argv[])
 			} else if (!(arm_switch_is_button == 1 && sp_man.arm_switch == manual_control_setpoint_s::SWITCH_POS_ON)) {
 				stick_off_counter = 0;
 			}
-
-			/* ARM
+		
+			/* ARM  摇杆解锁的处理
 			 * check if left stick is in lower right position or arm button is pushed or arm switch has transition from disarm to arm
 			 * and we're in MANUAL mode */
 			const bool stick_in_lower_right = (sp_man.r > STICK_ON_OFF_LIMIT && sp_man.z < 0.1f);
@@ -2823,11 +2827,14 @@ int commander_thread_main(int argc, char *argv[])
 					_last_sp_man_arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF &&
 					sp_man.arm_switch == manual_control_setpoint_s::SWITCH_POS_ON;
 
+			//1.检查解锁摇杆
+
 			if (!in_armed_state &&
 				status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF &&
 				(stick_in_lower_right || arm_button_pressed || arm_switch_to_arm_transition) ) {
+				//2.检测到解锁的摇杆命令
 				if ((stick_on_counter == rc_arm_hyst && stick_off_counter < rc_arm_hyst) || arm_switch_to_arm_transition) {
-
+					//3.多次检测确定摇杆想解锁  则下面执行解锁的命令
 					/* we check outside of the transition function here because the requirement
 					 * for being in manual mode only applies to manual arming actions.
 					 * the system can be armed in auto if armed via the GCS.
@@ -2847,6 +2854,7 @@ int commander_thread_main(int argc, char *argv[])
 						print_reject_arm("NOT ARMING: Geofence RTL requires valid home");
 
 					} else if (status.arming_state == vehicle_status_s::ARMING_STATE_STANDBY) {
+						//4.解锁命令的执行
 						arming_ret = arming_state_transition(&status,
 										     &battery,
 										     &safety,
