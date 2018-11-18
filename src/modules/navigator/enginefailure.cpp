@@ -115,7 +115,7 @@ EngineFailure::set_ef_item()
 			_mission_item.autocontinue = true;
 			_mission_item.origin = ORIGIN_ONBOARD;
 
-			_navigator->set_can_loiter_at_sp(true);
+			_navigator->set_can_loiter_at_sp(false);
 			break;
 		}
 

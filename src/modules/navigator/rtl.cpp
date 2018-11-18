@@ -226,7 +226,7 @@ RTL::set_rtl_item()
 			_mission_item.autocontinue = autoland;
 			_mission_item.origin = ORIGIN_ONBOARD;
 
-			_navigator->set_can_loiter_at_sp(true);
+			_navigator->set_can_loiter_at_sp(false);
 
 			if (autoland && (get_time_inside(_mission_item) > FLT_EPSILON)) {
 				_mission_item.nav_cmd = NAV_CMD_LOITER_TIME_LIMIT;

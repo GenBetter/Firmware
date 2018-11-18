@@ -225,7 +225,7 @@ Mission::on_active()
 	} else {
 		/* if waypoint position reached allow loiter on the setpoint */
 		if (_waypoint_position_reached && _mission_item.nav_cmd != NAV_CMD_IDLE) {
-			_navigator->set_can_loiter_at_sp(true);
+			_navigator->set_can_loiter_at_sp(false);
 		}
 	}
 
@@ -496,7 +496,7 @@ Mission::set_mission_items()
 				mavlink_log_info(_navigator->get_mavlink_log_pub(), "Mission finished, loitering.");
 
 				/* use last setpoint for loiter */
-				_navigator->set_can_loiter_at_sp(true);
+				_navigator->set_can_loiter_at_sp(false);
 			}
 
 			user_feedback_done = true;
