@@ -31,7 +31,7 @@ set(config_module_list
 	drivers/lis3mdl
 	drivers/ll40ls
 	drivers/lsm303d
-	#drivers/mb12xx
+	drivers/mb12xx
 	#drivers/mkblctrl
 	drivers/mpu6000
 	drivers/mpu9250

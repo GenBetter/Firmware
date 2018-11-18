@@ -360,7 +360,7 @@ then
 	sf1xx start
 fi
 
-# mb12xx sonar sensor
+# mb12xx sonar sensor超声波的启动
 if param greater SENS_EN_MB12XX 0
 then
 	mb12xx start

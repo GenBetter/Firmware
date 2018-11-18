@@ -76,7 +76,7 @@
 #include <board_config.h>
 
 /* Configuration Constants */
-#define MB12XX_BUS 		PX4_I2C_BUS_EXPANSION
+#define MB12XX_BUS 		PX4_I2C_BUS_ONBOARD
 #define MB12XX_BASEADDR 	0x70 /* 7-bit address. 8-bit address is 0xE0 */
 #define MB12XX_DEVICE_PATH	"/dev/mb12xx"
 
@@ -583,6 +583,7 @@ MB12XX::collect()
 	/* publish it, if we are the primary */
 	if (_distance_sensor_topic != nullptr) {
 		orb_publish(ORB_ID(distance_sensor), _distance_sensor_topic, &report);
+		warnx("%2.4f",(double)report.current_distance);
 	}
 
 	_reports->force(&report);
