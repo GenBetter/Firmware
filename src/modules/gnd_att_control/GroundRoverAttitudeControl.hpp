@@ -59,6 +59,7 @@
 #include <uORB/topics/vehicle_attitude_setpoint.h>
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/vehicle_rates_setpoint.h>
+#include <uORB/topics/distance_sensor.h>
 #include <uORB/uORB.h>
 
 using matrix::Eulerf;
@@ -81,6 +82,7 @@ private:
 
 	int		_att_sp_sub{-1};			/**< vehicle attitude setpoint */
 	int		_battery_status_sub{-1};		/**< battery status subscription */
+	int		_distance_sensor_sub{-1};
 	int		_att_sub{-1};		/**< control state subscription */
 	int		_manual_sub{-1};			/**< notification of manual control updates */
 	int		_params_sub{-1};			/**< notification of parameter updates */
@@ -90,6 +92,7 @@ private:
 
 	actuator_controls_s			_actuators {};		/**< actuator control inputs */
 	battery_status_s				_battery_status {};	/**< battery status */
+	distance_sensor_s               _mb1242_avoid {};
 	manual_control_setpoint_s		_manual {};		/**< r/c channel data */
 	vehicle_attitude_s				_att {};	/**< control state */
 	vehicle_attitude_setpoint_s		_att_sp {};		/**< vehicle attitude setpoint */
@@ -111,6 +114,8 @@ private:
 		float man_yaw_scale; 			/**< scale factor applied to yaw actuator control in pure manual mode */
 
 		int32_t bat_scale_en;			/**< Battery scaling enabled */
+		float avoid_min_dis;
+		float avoid_max_dis;
 
 	} _parameters{};			/**< local copies of interesting parameters */
 
@@ -124,6 +129,8 @@ private:
 		param_t man_yaw_scale;
 
 		param_t bat_scale_en;
+		param_t avoid_min_dis;
+		param_t avoid_max_dis;
 
 	} _parameter_handles{};		/**< handles for interesting parameters */
 
@@ -135,6 +142,7 @@ private:
 	void		manual_control_setpoint_poll();
 	void		vehicle_attitude_setpoint_poll();
 	void		battery_status_poll();
+	void		mb1242_avoid_poll();
 
 	static void	task_main_trampoline(int argc, char *argv[]);
 	void		task_main();

@@ -72,6 +72,9 @@ GroundRoverAttitudeControl::GroundRoverAttitudeControl() :
 	_parameter_handles.man_yaw_scale = param_find("GND_MAN_Y_SC");
 
 	_parameter_handles.bat_scale_en = param_find("GND_BAT_SCALE_EN");
+	
+	_parameter_handles.avoid_min_dis = param_find("AVOID_MIN_DIS");
+	_parameter_handles.avoid_max_dis = param_find("AVOID_MAX_DIS");
 
 	/* fetch initial parameter values */
 	parameters_update();
@@ -118,6 +121,9 @@ GroundRoverAttitudeControl::parameters_update()
 	param_get(_parameter_handles.man_yaw_scale, &(_parameters.man_yaw_scale));
 
 	param_get(_parameter_handles.bat_scale_en, &_parameters.bat_scale_en);
+
+	param_get(_parameter_handles.avoid_min_dis, &_parameters.avoid_min_dis);
+	param_get(_parameter_handles.avoid_max_dis, &_parameters.avoid_max_dis);
 
 	/* Steering pid parameters*/
 	pid_init(&_steering_ctrl, PID_MODE_DERIVATIV_SET, 0.01f);
@@ -175,6 +181,18 @@ GroundRoverAttitudeControl::battery_status_poll()
 }
 
 void
+GroundRoverAttitudeControl::mb1242_avoid_poll()
+{
+	/* check if there is a new message */
+	bool updated;
+	orb_check(_distance_sensor_sub, &updated);
+
+	if (updated) {
+		orb_copy(ORB_ID(distance_sensor), _distance_sensor_sub, &_mb1242_avoid);
+	}
+}
+
+void
 GroundRoverAttitudeControl::task_main_trampoline(int argc, char *argv[])
 {
 	att_gnd_control::g_control->task_main();
@@ -189,6 +207,7 @@ GroundRoverAttitudeControl::task_main()
 	_params_sub = orb_subscribe(ORB_ID(parameter_update));
 	_manual_sub = orb_subscribe(ORB_ID(manual_control_setpoint));
 	_battery_status_sub = orb_subscribe(ORB_ID(battery_status));
+	_distance_sensor_sub = orb_subscribe(ORB_ID(distance_sensor));
 
 	parameters_update();
 
@@ -197,6 +216,7 @@ GroundRoverAttitudeControl::task_main()
 	vehicle_control_mode_poll();
 	manual_control_setpoint_poll();
 	battery_status_poll();
+	mb1242_avoid_poll();
 
 	/* wakeup source */
 	px4_pollfd_struct_t fds[2];
@@ -258,6 +278,7 @@ GroundRoverAttitudeControl::task_main()
 			vehicle_control_mode_poll();
 			manual_control_setpoint_poll();
 			battery_status_poll();
+			mb1242_avoid_poll();
 
 			/* decide if in stabilized or full manual control */
 			//这是自稳模式stablize控姿态，下面的else是纯手动直接控输出 manual
@@ -320,6 +341,24 @@ GroundRoverAttitudeControl::task_main()
 				_actuators.control[actuator_controls_s::INDEX_YAW] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
 				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z*2-1;				
 			}
+
+			//下面做小车的壁障程序处理
+			//_mb1242_avoid
+			static int i=0;
+			i++;
+			if(i>600)
+			{
+				warnx("min_dis %2.4f",(double)_parameters.avoid_min_dis);
+				warnx("max_dis %2.4f",(double)_parameters.avoid_max_dis);
+				warnx("curr_dis %2.4f",(double)_mb1242_avoid.current_distance);
+				i=0;
+			}
+
+
+
+
+
+
 
 			/* lazily publish the setpoint only once available */
 			_actuators.timestamp = hrt_absolute_time();

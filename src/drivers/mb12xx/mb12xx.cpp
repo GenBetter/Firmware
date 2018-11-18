@@ -583,7 +583,7 @@ MB12XX::collect()
 	/* publish it, if we are the primary */
 	if (_distance_sensor_topic != nullptr) {
 		orb_publish(ORB_ID(distance_sensor), _distance_sensor_topic, &report);
-		warnx("%2.4f",(double)report.current_distance);
+		//warnx("%2.4f",(double)report.current_distance);
 	}
 
 	_reports->force(&report);
