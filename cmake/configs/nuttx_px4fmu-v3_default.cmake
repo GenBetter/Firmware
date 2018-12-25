@@ -146,6 +146,7 @@ set(config_module_list
 	modules/systemlib
 	modules/systemlib/param
 	modules/uORB
+	modules/AHRS
 
 	#
 	# Libraries

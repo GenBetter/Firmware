@@ -954,6 +954,9 @@ then
 	#
 	navigator start
 
+	#串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
+	AHRS start
+
 	#
 	# Generic setup (autostart ID not found)
 	#
