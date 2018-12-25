@@ -225,10 +225,10 @@ int AHRS_app_main(int argc, char *argv[])
 
 
 ////////////////////////////////////////////标注的是串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
-        char a[10]={'w','a','n','g','g','e','n','\n'};
-        int funk=0;
-        funk=write(uart_read,&a,8);
-        warnx("--%d",funk);
+        // char a[10]={'w','a','n','g','g','e','n','\n'};
+        // int funk=0;
+        // funk=write(uart_read,&a,8);
+        // warnx("--%d",funk);
 ///////////////////////////////////////////
 
 

@@ -92,7 +92,7 @@
 int test_uart_send(int argc, char *argv[])
 {
 	/* input handling */
-	char *uart_name = "/dev/ttyS3";
+	char *uart_name = "/dev/ttyS6";
 
 	if (argc > 1) { uart_name = argv[1]; }
 
@@ -113,7 +113,7 @@ int test_uart_send(int argc, char *argv[])
 
 	uint64_t start_time = hrt_absolute_time();
 
-	for (i = 0; i < 30000; i++) {
+	for (i = 0; i < 30; i++) {
 		n = sprintf(sample_test_uart, "SAMPLE #%d\n", i);
 		write(test_uart, sample_test_uart, n);
 	}
