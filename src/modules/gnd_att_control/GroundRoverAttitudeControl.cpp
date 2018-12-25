@@ -344,16 +344,19 @@ GroundRoverAttitudeControl::task_main()
 
 			//下面做小车的壁障程序处理
 			//_mb1242_avoid
-			static int i=0;
-			i++;
-			if(i>600)
-			{
-				warnx("min_dis %2.4f",(double)_parameters.avoid_min_dis);
-				warnx("max_dis %2.4f",(double)_parameters.avoid_max_dis);
-				warnx("curr_dis %2.4f",(double)_mb1242_avoid.current_distance);
-				i=0;
-			}
+			// static int i=0;
+			// i++;
+			// if(i>600)
+			// {
+			// 	warnx("min_dis %2.4f",(double)_parameters.avoid_min_dis);
+			// 	warnx("max_dis %2.4f",(double)_parameters.avoid_max_dis);
+			// 	warnx("curr_dis %2.4f",(double)_mb1242_avoid.current_distance);
+			// 	i=0;
+			// }
 
+			if(_mb1242_avoid.current_distance < 0.6f){
+				_actuators.control[actuator_controls_s::INDEX_THROTTLE]=-1;
+			}
 
 
 
