@@ -18,14 +18,10 @@
 #include <px4_config.h>  
 #include <nuttx/sched.h>  
 #include <px4_tasks.h>
-#include <uORB/topics/vehicle_global_position.h>
+
 #include <uORB/topics/vehicle_attitude.h>
-#include <uORB/topics/ekf2_innovations.h>
-#include <uORB/topics/mount_orientation.h>
-#include <uORB/topics/sensor_combined.h>
-#include <uORB/topics/vehicle_local_position.h>
-#include <uORB/topics/vehicle_global_position.h>
-#include <uORB/topics/vehicle_gps_position.h>
+#include <uORB/topics/actuator_outputs.h>
+
 #include <math.h> 
 
 
@@ -34,14 +30,10 @@ static bool thread_running = false;     /**< daemon status flag */
 static int daemon_task;             /**< Handle of daemon task / thread */  
 static int uart_init(char * uart_name);
 static int set_uart_baudrate(const int fd, unsigned int baud);    
-void quat_to_dcm(void);
-void dcm_to_euler(void);
-//struct vehicle_global_position_s position;
-//struct vehicle_attitude_setpoint_s attitude;
-float dcm[3][3];
-float q[4];
-float q00,q11,q22,q33,q01,q02,q03,q12,q13,q23;
-float euler[3];
+
+float q[4]={0};
+int conut=0;
+
    
 __EXPORT int AHRS_main(int argc, char *argv[]);
 
@@ -142,144 +134,102 @@ int uart_init(char * uart_name)
         err(1, "failed to open port: %s", uart_name);
         return false;
     }
-//    printf("Open the %s\n",serial_fd);
+    //printf("Open the %s\n",serial_fd);
     return serial_fd;
 }
 
-void quat_to_dcm(void)
-{
-    q00 = q[0]*q[0];
-    q11 = q[1]*q[1];
-    q22 = q[2]*q[2];
-    q33 = q[3]*q[3];
-    q01 = q[0]*q[1];
-    q02 = q[0]*q[2];
-    q03 = q[0]*q[3];   
-    q12 = q[1]*q[2];
-    q13 = q[1]*q[3];
-    q23 = q[2]*q[3];   
 
-    dcm[0][0] = q00 + q11 - q22 - q33;
-    dcm[1][1] = q00 - q11 + q22 - q33;
-    dcm[2][2] = q00 - q11 - q22 + q33;
-    dcm[0][1] = 2.0f * (q12 - q03);
-    dcm[0][2] = 2.0f * (q13 + q02);
-    dcm[1][0] = 2.0f * (q12 + q03);
-    dcm[1][2] = 2.0f * (q23 - q01);
-    dcm[2][0] = 2.0f * (q13 - q02);
-    dcm[2][1] = 2.0f * (q23 + q01);
-}
 
-void dcm_to_euler(void)
-	{
-		euler[1] = asinf(-dcm[2][0]);
-
-		if (fabsf(euler[1] - M_PI_2_F) < 1.0e-3f) {
-			euler[0] = 0.0f;
-			euler[2] = atan2f(dcm[1][2] - dcm[0][1], dcm[0][2] + dcm[1][1]) + euler[0];
-
-		} else if (fabsf(euler[1] + M_PI_2_F) < 1.0e-3f) {
-			euler[0] = 0.0f;
-			euler[2] = atan2f(dcm[1][2] - dcm[0][1], dcm[0][2] + dcm[1][1]) - euler[0];
-
-		} else {
-			euler[0] = atan2f(dcm[2][1], dcm[2][2]);
-			euler[2] = atan2f(dcm[1][0], dcm[0][0]);
-		}
-
-	}
 
 int AHRS_app_main(int argc, char *argv[])
 {
     /*
      * TELEM1 : /dev/ttyS1
      * TELEM2 : /dev/ttyS2
-     * GPS2    :/dev/ttyS6
+     * GPS2    :/dev/ttyS6  赫星pixhakw2板子 代码px4 1.7.0 使用串口gps2对应ttys6串口输出
      *         : /dev/ttyS5
      *         : /dev/ttyS6
      * N/A    : /dev/ttyS4
      * IO DEBUG (RX only):/dev/ttyS0
      */
-    /////////////////////////////////////////////////////////标注的是串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
+    //////////标注的是串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
     int uart_read = uart_init("/dev/ttyS6");
     if(false == uart_read)
         return -1;
-    if(false == set_uart_baudrate(uart_read,115200)){
+    if(false == set_uart_baudrate(uart_read,57600)){
         printf("set_uart_baudrate is failed\n");
         return -1;
     }
-    //////////////////////////////////////////////////////////
+    ////////
+
     thread_running = true;
     printf("AHRS starts successfully\n");
- //   int position_fd = orb_subscribe(ORB_ID(vehicle_global_position));
-    //int attitude_fd = orb_subscribe(ORB_ID(ekf2_innovations));
 
-  //  orb_copy(ORB_ID(vehicle_global_position), position_fd, &position);
     int attitude_fd = orb_subscribe(ORB_ID(vehicle_attitude));
-    int position_fd = orb_subscribe(ORB_ID(vehicle_global_position));
-    int sensor_fd = orb_subscribe(ORB_ID(sensor_combined));
-    int gps_fd = orb_subscribe(ORB_ID(vehicle_gps_position));
+    int actuator_fd = orb_subscribe(ORB_ID(actuator_outputs));
+
   //  orb_set_interval(attitude_fd, 500);
-    orb_set_interval(gps_fd, 500);        
+
+
     while (!thread_should_exit) { 
 
-
-////////////////////////////////////////////标注的是串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
+        ////////标注的是串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
         // char a[10]={'w','a','n','g','g','e','n','\n'};
         // int funk=0;
         // funk=write(uart_read,&a,8);
         // warnx("--%d",funk);
-///////////////////////////////////////////
 
 
-        bool attitude_updated = false;  
-        bool position_updated = false; 
-        bool sensor_updated = false;
-        bool gps_updated = false;        
-        orb_check(attitude_fd, &attitude_updated);
-        orb_check(position_fd, &position_updated);       
-        orb_check(sensor_fd, &attitude_updated);
-        orb_check(gps_fd, &gps_updated);  
-     /* obtained data for the first file descriptor */  
-        attitude_updated = false;
+  
         struct vehicle_attitude_s attitude; 
-        struct vehicle_global_position_s position;     
-        struct sensor_combined_s sensor;  
-        struct vehicle_gps_position_s gps;     
-        memset(&attitude, 0, sizeof(attitude)); 
-        memset(&position, 0, sizeof(position)); 
-        memset(&sensor, 0, sizeof(sensor)); 
-        memset(&gps, 0, sizeof(gps));
-      /* copy sensors raw data into local buffer */  
-        if (attitude_updated)
+        memset(&attitude, 0, sizeof(attitude));  
+
+        bool updated1 = false;  
+        orb_check(attitude_fd, &updated1);
+        if (updated1)
         {
-            attitude_updated = false;
+            updated1 = false;
             orb_copy(ORB_ID(vehicle_attitude), attitude_fd, &attitude);
             q[0] = attitude.q[0];
             q[1] = attitude.q[1];
             q[2] = attitude.q[2];
             q[3] = attitude.q[3];
-            quat_to_dcm();
-            dcm_to_euler();
+
+            //////标注的是串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
+        //    int att[4]={10,11,12,13};
+        //    conut=write(uart_read,att,sizeof(att));
+        //    warnx("att Q write uart %d byte",conut);
+
         }
-        if (position_updated)
+
+        struct actuator_outputs_s actuator;
+        memset(&actuator, 0, sizeof(actuator)); 
+        bool updated2 = false; 
+        orb_check(actuator_fd, &updated2);
+        if (updated2)   
         {
-            position_updated = false;   
-            orb_copy(ORB_ID(vehicle_global_position), position_fd, &position);         
-        }
-        if (sensor_updated)
-        {
-            sensor_updated = false;   
-            orb_copy(ORB_ID(sensor_combined), sensor_fd, &sensor);                  
-        }
-        if (gps_updated)   
-        {
-            gps_updated = false;       
-            orb_copy(ORB_ID(vehicle_gps_position), gps_fd, &gps);
-                    short t = 0x55AA;
-        write(uart_read,&t,2);
-      //  write(uart_read,&attitude.baro_alt_meter,4);
-        write(uart_read,&gps.fix_type,1);
+            updated2 = false;       
+            orb_copy(ORB_ID(actuator_outputs), actuator_fd, &actuator);
+
+            // warnx("noutputs= %d",actuator.noutputs);
+            // warnx("noutputs= %d",(int)actuator.output[0]);
+            // warnx("noutputs= %d",(int)actuator.output[1]);
+            // warnx("noutputs= %d",(int)actuator.output[2]);
+            // warnx("noutputs= %d",(int)actuator.output[3]);
+            // warnx("noutputs= %d",(int)actuator.output[4]);
+            // warnx("noutputs= %d",(int)actuator.output[5]);
+            // warnx("noutputs= %d",(int)actuator.output[6]);
+            // warnx("noutputs= %d",(int)actuator.output[7]);
+            
+         
+            int act[8]={(int)actuator.output[0],(int)actuator.output[1],(int)actuator.output[2],(int)actuator.output[3],
+                        (int)actuator.output[4],(int)actuator.output[5],(int)actuator.output[6],(int)actuator.output[7],};
+            conut=write(uart_read,act,sizeof(act));
+            warnx("write uart %d byte",conut);
+            //sleep(3); 
+
+
+
         }    
         usleep(20000); 
 
