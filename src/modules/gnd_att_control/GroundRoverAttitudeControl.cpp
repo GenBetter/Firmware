@@ -330,7 +330,7 @@ GroundRoverAttitudeControl::task_main()
 					if (_parameters.bat_scale_en && _battery_status.scale > 0.0f &&
 					    _actuators.control[actuator_controls_s::INDEX_THROTTLE] > 0.1f) {
 
-						_actuators.control[actuator_controls_s::INDEX_THROTTLE] *= _battery_status.scale;
+						_actuators.control[actuator_controls_s::INDEX_THROTTLE] *= 1;//_battery_status.scale;
 					}
 				}
 
@@ -339,7 +339,7 @@ GroundRoverAttitudeControl::task_main()
 				_actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y;
 				_actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x;
 				_actuators.control[actuator_controls_s::INDEX_YAW] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
-				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z*2-1;				
+				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z;				
 			}
 
 			//下面做小车的壁障程序处理
