@@ -373,10 +373,10 @@ GroundRoverAttitudeControl::task_main()
 
 				/* publish the actuator controls */
 				if (_actuators_0_pub != nullptr) {
-					orb_publish(ORB_ID_VEHICLE_ATTITUDE_CONTROLS, _actuators_0_pub, &_actuators);
+					orb_publish(ORB_ID(actuator_controls_0), _actuators_0_pub, &_actuators);
 
 				} else {
-					_actuators_0_pub = orb_advertise(ORB_ID_VEHICLE_ATTITUDE_CONTROLS, &_actuators);
+					_actuators_0_pub = orb_advertise(ORB_ID(actuator_controls_0), &_actuators);
 				}
 			}
 		}

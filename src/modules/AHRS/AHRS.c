@@ -19,8 +19,7 @@
 #include <nuttx/sched.h>  
 #include <px4_tasks.h>
 
-#include <uORB/topics/vehicle_attitude.h>
-#include <uORB/topics/actuator_outputs.h>
+#include <uORB/topics/actuator_controls.h>
 
 #include <math.h> 
 
@@ -31,14 +30,24 @@ static int daemon_task;             /**< Handle of daemon task / thread */
 static int uart_init(char * uart_name);
 static int set_uart_baudrate(const int fd, unsigned int baud);    
 
-float q[4]={0};
+
 int conut=0;
+int  yaw=0x00;     //存储yaw控制量放大10000倍 相当于混控器的作用
+int  throttle=0x00;//存储throttle控制量放大10000倍 相当于混控器的作用
+
+unsigned char mode=0x00;//功能字节mode 左转 右转
+unsigned char turn=0x00;//转弯的pwm 0-250
+
+unsigned char thr_low=0x00; //油门低字节
+unsigned char thr_high=0x00; //油门高字节
+
+unsigned char output[10]={0x00};//最终的串口输出
 
    
 __EXPORT int AHRS_main(int argc, char *argv[]);
 
 /** 
- * daemon management function. 
+ * daemon management mode. 
  */  
 __EXPORT int AHRS_app_main(int argc, char *argv[]);  
    
@@ -156,7 +165,7 @@ int AHRS_app_main(int argc, char *argv[])
     int uart_read = uart_init("/dev/ttyS6");
     if(false == uart_read)
         return -1;
-    if(false == set_uart_baudrate(uart_read,57600)){
+    if(false == set_uart_baudrate(uart_read,19200)){
         printf("set_uart_baudrate is failed\n");
         return -1;
     }
@@ -165,10 +174,10 @@ int AHRS_app_main(int argc, char *argv[])
     thread_running = true;
     printf("AHRS starts successfully\n");
 
-    int attitude_fd = orb_subscribe(ORB_ID(vehicle_attitude));
-    int actuator_fd = orb_subscribe(ORB_ID(actuator_outputs));
 
-  //  orb_set_interval(attitude_fd, 500);
+    int actuator_fd = orb_subscribe(ORB_ID(actuator_controls_0));
+
+    orb_set_interval(actuator_fd, 100); //间隔时间单位ms
 
 
     while (!thread_should_exit) { 
@@ -177,59 +186,68 @@ int AHRS_app_main(int argc, char *argv[])
         // char a[10]={'w','a','n','g','g','e','n','\n'};
         // int funk=0;
         // funk=write(uart_read,&a,8);
-        // warnx("--%d",funk);
+        // warnx("test byte = %d",funk);
 
-
-  
-        struct vehicle_attitude_s attitude; 
-        memset(&attitude, 0, sizeof(attitude));  
-
-        bool updated1 = false;  
-        orb_check(attitude_fd, &updated1);
-        if (updated1)
-        {
-            updated1 = false;
-            orb_copy(ORB_ID(vehicle_attitude), attitude_fd, &attitude);
-            q[0] = attitude.q[0];
-            q[1] = attitude.q[1];
-            q[2] = attitude.q[2];
-            q[3] = attitude.q[3];
-
-            //////标注的是串口的输出程序 使用的赫星pixhakw2板子 代码px4 1.7.0 串口gps2对应ttys6
-        //    int att[4]={10,11,12,13};
-        //    conut=write(uart_read,att,sizeof(att));
-        //    warnx("att Q write uart %d byte",conut);
-
-        }
-
-        struct actuator_outputs_s actuator;
-        memset(&actuator, 0, sizeof(actuator)); 
+        struct actuator_controls_s _actuator;
+        memset(&_actuator, 0, sizeof(_actuator)); 
         bool updated2 = false; 
         orb_check(actuator_fd, &updated2);
+
         if (updated2)   
         {
             updated2 = false;       
-            orb_copy(ORB_ID(actuator_outputs), actuator_fd, &actuator);
+            orb_copy(ORB_ID(actuator_controls_0), actuator_fd, &_actuator);
+            warnx("已经接收到发布的控制量数据");
 
-            // warnx("noutputs= %d",actuator.noutputs);
-            // warnx("noutputs= %d",(int)actuator.output[0]);
-            // warnx("noutputs= %d",(int)actuator.output[1]);
-            // warnx("noutputs= %d",(int)actuator.output[2]);
-            // warnx("noutputs= %d",(int)actuator.output[3]);
-            // warnx("noutputs= %d",(int)actuator.output[4]);
-            // warnx("noutputs= %d",(int)actuator.output[5]);
-            // warnx("noutputs= %d",(int)actuator.output[6]);
-            // warnx("noutputs= %d",(int)actuator.output[7]);
+            yaw      = (int)(_actuator.control[2]*10000); //yaw放大10000倍相当于混控器的作用
+            throttle = (int)(_actuator.control[3]*10000); //throttle放大10000倍相当于混控器的作用
+            warnx("yaw      =%d ",yaw);
+            warnx("throttle =%d \n",throttle);
+
+            //转向的处理
+            if( yaw<0 ){
+                mode=0x20;   //左转
+                yaw=-yaw;
+                turn=yaw/40; //范围0-250
+            }
+            else if( yaw>0 ){
+                mode=0x40;    //右转
+                turn=yaw/40;  //范围0-250
+            }
+            else{
+                mode=0; //不转
+                turn=0;
+            }
+
+            warnx("yaw      =%d ",yaw);
+            warnx("turn     =%d \n",turn);
+
+            //油门的处理
+            throttle= throttle/40 +250 ; //范围250-500
+            thr_low=throttle*0x0F;        //油门低字节
+            thr_high=throttle*0xF0;        //油门高字节
+
+            warnx("throttle =%d ",throttle);
+            warnx("thr_low  =%d ",thr_low);
+            warnx("thr_high =%d \n\n\n",thr_high);
             
-         
-            int act[8]={(int)actuator.output[0],(int)actuator.output[1],(int)actuator.output[2],(int)actuator.output[3],
-                        (int)actuator.output[4],(int)actuator.output[5],(int)actuator.output[6],(int)actuator.output[7],};
-            conut=write(uart_read,act,sizeof(act));
+            output[3]=mode;
+            output[4]=thr_high;
+            output[5]=thr_low;
+            output[6]=turn;
+
+            // output[3]=0x20;
+            // output[4]=0x01;
+            // output[5]=0xF4;
+            // output[6]=250;
+
+            unsigned int temp=output[0]+output[1]+output[2]+output[3]+output[4]+output[5]+output[6]+output[7];
+
+            output[8]=(unsigned char)(temp>>8);
+            output[9]=(unsigned char)(temp&0x00FF);
+            
+            conut=write(uart_read,output,sizeof(output));
             warnx("write uart %d byte",conut);
-            //sleep(3); 
-
-
-
         }    
         usleep(20000); 
 
