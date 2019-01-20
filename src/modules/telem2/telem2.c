@@ -36,7 +36,7 @@ static bool thread_running = false;     /**< daemon status flag */
 static int daemon_task;             /**< Handle of daemon task / thread */  
 static int uart_init(char * uart_name);
 static int set_uart_baudrate(const int fd, unsigned int baud);    
-
+static unsigned char check_data(unsigned char *data);  
 
 int conut=0;
 int  yaw=0x00;     //存储yaw控制量放大10000倍 相当于混控器的作用
@@ -141,6 +141,18 @@ int set_uart_baudrate(const int fd, unsigned int baud)
 }
 
 
+
+unsigned char check_data(unsigned char *data){
+    unsigned char temp,i;
+    temp=data[0];
+    for(i=1;i<11;i++){
+        temp=temp^data[i];
+    }
+    temp=temp&0x03;
+    return temp;
+}
+
+
 int uart_init(char * uart_name)
 {
     int serial_fd = open(uart_name, O_RDWR | O_NOCTTY);
@@ -194,6 +206,49 @@ int telem2_app_main(int argc, char *argv[])
         // write(uart_read,&data,1);
         // warnx("data has write back !");
 
+
+        //开发遥控器数据的接收
+        unsigned char data=0x00;
+        unsigned char RC_rece[14]={0x00};//接收到的遥控器数据
+        read(uart_read,&data,1);
+       
+        if(data==0xFC){
+            read(uart_read,&data,1);
+            if(data==0xFC){
+                read(uart_read,&RC_rece[0],14);
+                unsigned char corr=check_data(RC_rece);
+
+                if(corr==RC_rece[11])
+                {
+                    warnx("1 =%d",RC_rece[0]);
+                    warnx("2 =%d",RC_rece[0]);
+                    warnx("3 =%d",RC_rece[0]);
+                    warnx("4 =%d",RC_rece[0]);
+                    warnx("5 =%d",RC_rece[0]);
+                    warnx("6 =%d",RC_rece[0]);
+                    warnx("7 =%d",RC_rece[0]);
+                    warnx("8 =%d",RC_rece[0]);
+                    warnx("9 =%d",RC_rece[0]);
+                    warnx("10 =%d",RC_rece[0]);
+                    warnx("11 =%d",RC_rece[0]);
+
+                    write(uart_read,&RC_rece,14);
+                }
+                else{
+                    warnx("RC_rece[11]=%d",RC_rece[11]);
+                    warnx("corr=%d",corr);
+                }
+
+            }
+        }
+
+
+
+
+
+
+
+        //以下是根据控制量 往串口外写数据
         /*
         struct actuator_controls_s _actuator;
         memset(&_actuator, 0, sizeof(_actuator)); 
