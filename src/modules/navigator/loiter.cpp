@@ -86,11 +86,13 @@ Loiter::on_activation()
 {
 	//QGC上指点飞行confirm后 其实是切入hold模式，这种切入hold进入下面的set_loiter_position()，飞机飞往所指的curr点 到点后保持悬停
 	if (_navigator->get_reposition_triplet()->current.valid) {
+		//warnx("on_activation中指点飞行");
 		reposition(); 
 
 	} 
 	//由其他模式直接切入到hold模式 进入下面的set_loiter_position()飞机在当前位置保持悬停
 	else {
+		//warnx("on_activation中在当前位置悬停");
 		set_loiter_position();
 	}
 }
@@ -107,6 +109,7 @@ Loiter::on_active()
 {
 	//飞机目前已经在hold模式下 这时候QGC的指点飞行还是进入下面reposition(),飞机飞往指点curr 到点后保持悬停
 	if (_navigator->get_reposition_triplet()->current.valid) {
+		//warnx("on_active中指点飞行");
 		reposition();
 	}
 
