@@ -36,7 +36,6 @@ static bool thread_running = false;     /**< daemon status flag */
 static int daemon_task;             /**< Handle of daemon task / thread */  
 static int uart_init(char * uart_name);
 static int set_uart_baudrate(const int fd, unsigned int baud);    
-static unsigned char check_data(unsigned char *data);  
 
 int conut=0;
 int  yaw=0x00;     //存储yaw控制量放大10000倍 相当于混控器的作用
@@ -142,15 +141,6 @@ int set_uart_baudrate(const int fd, unsigned int baud)
 
 
 
-unsigned char check_data(unsigned char *data){
-    unsigned char temp,i;
-    temp=data[0];
-    for(i=1;i<11;i++){
-        temp=temp^data[i];
-    }
-    temp=temp&0x03;
-    return temp;
-}
 
 
 int uart_init(char * uart_name)
@@ -176,7 +166,7 @@ int telem2_app_main(int argc, char *argv[])
     int uart_read = uart_init("/dev/ttyS2");
     if(false == uart_read)
         return -1;
-    if(false == set_uart_baudrate(uart_read,57600)){
+    if(false == set_uart_baudrate(uart_read,115200)){
         printf("set_uart_baudrate is failed\n");
         return -1;
     }
@@ -207,40 +197,56 @@ int telem2_app_main(int argc, char *argv[])
         // warnx("data has write back !");
 
 
-        //开发遥控器数据的接收
-        unsigned char data=0x00;
-        unsigned char RC_rece[14]={0x00};//接收到的遥控器数据
-        read(uart_read,&data,1);
-       
-        if(data==0xFC){
-            read(uart_read,&data,1);
-            if(data==0xFC){
-                read(uart_read,&RC_rece[0],14);
-                unsigned char corr=check_data(RC_rece);
 
-                if(corr==RC_rece[11])
+        //遥控器数据的接收
+        unsigned char temp=0x00; //用来临时保存接收的一个字节的遥控器数据，遥控器数据要for循环一个一个接收，不用担心有遗漏。
+        unsigned char RC_rec[14]={0x00};//接收到的遥控器数据，主要保存正文部分
+        unsigned char count=0;      //计数
+        unsigned char check_data=0; //校验数据
+
+        count = read(uart_read,&temp,1);
+
+        if(temp==0xFF){ //开头是0xFF 0xFC
+
+            count = read(uart_read,&temp,1);
+
+            if(temp==0xFC){ //开头是0xFF 0xFC
+
+                //接受遥控器的14个数据 第12个数据是校验 第13、14数据是FD、FD结束符
+                for(int i=0;i<14;i++){
+                    count = read(uart_read,&temp,1);
+                    RC_rec[i]=temp;
+                }
+
+                // //把收集遥控器数据再写回去 对比下看看接收是否正确
+                // count = write(uart_read,RC_rec,sizeof(RC_rec));
+                   count=count;
+                
+                //对接收的数据进行校验
+                check_data=0xFF^0xFC;
+                for(int i=0;i<11;i++)
                 {
-                    warnx("1 =%d",RC_rece[0]);
-                    warnx("2 =%d",RC_rece[0]);
-                    warnx("3 =%d",RC_rece[0]);
-                    warnx("4 =%d",RC_rece[0]);
-                    warnx("5 =%d",RC_rece[0]);
-                    warnx("6 =%d",RC_rece[0]);
-                    warnx("7 =%d",RC_rece[0]);
-                    warnx("8 =%d",RC_rece[0]);
-                    warnx("9 =%d",RC_rece[0]);
-                    warnx("10 =%d",RC_rece[0]);
-                    warnx("11 =%d",RC_rece[0]);
+                    check_data=check_data^RC_rec[i];
+                }
+                // warnx("rc11  %02x",RC_rec[11]);
+                // warnx("check %02x",check_data);
 
-                    write(uart_read,&RC_rece,14);
+
+                if(check_data==RC_rec[11]){
+                    warnx("check ok");
                 }
                 else{
-                    warnx("RC_rece[11]=%d",RC_rece[11]);
-                    warnx("corr=%d",corr);
+                   warnx("check not ok");
                 }
+
 
             }
         }
+
+
+
+
+        
 
 
 
