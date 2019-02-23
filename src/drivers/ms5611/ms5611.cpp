@@ -803,6 +803,13 @@ MS5611::collect()
 		if (!(_pub_blocked) && _baro_topic != nullptr) {
 			/* publish it */
 			orb_publish(ORB_ID(sensor_baro), _baro_topic, &report);
+
+			// static int i=0;
+			// i++;
+			// if(i>100){
+			// 	i=0;
+			// 	warnx("%2.4f",(double)report.pressure);
+			// }
 		}
 
 		if (_reports->force(&report)) {

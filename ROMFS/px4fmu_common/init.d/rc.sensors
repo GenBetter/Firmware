@@ -35,14 +35,13 @@ else
 			fmu sensor_reset 50
 		fi
 
-		# External SPI
-		if ms5611 -S start
-		then
-		fi
 
-		# Internal SPI
-		if ms5611 -s start
+		# MS5611_BUS_I2C_EXTERNAL
+		if ms5611 -X start
 		then
+			echo "ms5611 external iic start successful"
+		else
+			echo "ms5611 external iic start failure"
 		fi
 
 		# Blacksheep telemetry
