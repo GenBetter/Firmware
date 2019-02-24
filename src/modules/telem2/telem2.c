@@ -27,6 +27,7 @@
 #include <px4_tasks.h>
 
 #include <uORB/topics/actuator_controls.h>
+#include <uORB/topics/guanghua_rc.h>
 
 #include <math.h> 
 
@@ -179,6 +180,10 @@ int telem2_app_main(int argc, char *argv[])
     int actuator_fd = orb_subscribe(ORB_ID(actuator_controls_0));
     orb_set_interval(actuator_fd, 100); //间隔时间单位ms
 
+    struct guanghua_rc_s  _rc; /**< controller status */
+    memset(&_rc, 0, sizeof(_rc));
+    orb_advert_t guanghua_rc_pub=NULL;
+
 
     while (!thread_should_exit) { 
 
@@ -233,7 +238,31 @@ int telem2_app_main(int argc, char *argv[])
 
 
                 if(check_data==RC_rec[11]){
+                   
                     warnx("check ok");
+
+                    for(int i=0;i<11;i++)
+                    {
+                        _rc.channel[i]=RC_rec[i];//把获取的遥控器数据拷贝过来
+                    }
+
+                    //四个摇杆的范围是0-200,其中中间是100,这里归一化为-1到1
+                    _rc.x=(float)(RC_rec[0]/100.0 -1.0);
+                    _rc.y=(float)(RC_rec[1]/100.0 -1.0);
+                    _rc.r=(float)(RC_rec[2]/100.0 -1.0);
+                    _rc.z=(float)(RC_rec[3]/100.0 -1.0);
+
+                    //为油门设置一个死区
+                    if(abs(_rc.z)<0.1)(_rc.z=0);
+
+                    //既然遥控器数据OK，下面就进行发布了                  
+                    if (guanghua_rc_pub != NULL) {
+                        orb_publish(ORB_ID(guanghua_rc), guanghua_rc_pub, &_rc);
+
+                    } else {
+                        guanghua_rc_pub = orb_advertise(ORB_ID(guanghua_rc), &_rc);
+                    }
+
                 }
                 else{
                    warnx("check not ok");
