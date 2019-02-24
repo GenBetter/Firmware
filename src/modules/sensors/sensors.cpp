@@ -2214,12 +2214,14 @@ Sensors::rc_poll()
 					     _parameters.rc_gear_th, _parameters.rc_gear_inv);
 
 			/* publish manual_control_setpoint topic */
-			if (_manual_control_pub != nullptr) {
-				orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
 
-			} else {
-				_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
-			}
+			//用航天光华的遥控器数据进行替换，在telem2.c中进行发布
+			// if (_manual_control_pub != nullptr) {
+			// 	orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
+
+			// } else {
+			// 	_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
+			// }
 
 			/* copy from mapped manual control to control group 3 */
 			struct actuator_controls_s actuator_group_3 = {};

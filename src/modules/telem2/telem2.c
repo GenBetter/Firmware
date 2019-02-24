@@ -27,7 +27,7 @@
 #include <px4_tasks.h>
 
 #include <uORB/topics/actuator_controls.h>
-#include <uORB/topics/guanghua_rc.h>
+#include <uORB/topics/manual_control_setpoint.h>
 
 #include <math.h> 
 
@@ -180,9 +180,9 @@ int telem2_app_main(int argc, char *argv[])
     int actuator_fd = orb_subscribe(ORB_ID(actuator_controls_0));
     orb_set_interval(actuator_fd, 100); //间隔时间单位ms
 
-    struct guanghua_rc_s  _rc; /**< controller status */
-    memset(&_rc, 0, sizeof(_rc));
-    orb_advert_t guanghua_rc_pub=NULL;
+    struct manual_control_setpoint_s  manual; /**< controller status */
+    memset(&manual, 0, sizeof(manual));
+    orb_advert_t _manual_control_pub=NULL;
 
 
     while (!thread_should_exit) { 
@@ -243,24 +243,26 @@ int telem2_app_main(int argc, char *argv[])
 
                     for(int i=0;i<11;i++)
                     {
-                        _rc.channel[i]=RC_rec[i];//把获取的遥控器数据拷贝过来
+                        manual.channel[i]=RC_rec[i];//把获取的遥控器数据拷贝过来
                     }
 
                     //四个摇杆的范围是0-200,其中中间是100,这里归一化为-1到1
-                    _rc.x=(float)(RC_rec[0]/100.0 -1.0);
-                    _rc.y=(float)(RC_rec[1]/100.0 -1.0);
-                    _rc.r=(float)(RC_rec[2]/100.0 -1.0);
-                    _rc.z=(float)(RC_rec[3]/100.0 -1.0);
+                    manual.x=(float)( RC_rec[0]/100.0 -1.0); 
+                    manual.y=(float)( RC_rec[1]/100.0 -1.0);
+                    manual.r=(float)( RC_rec[2]/100.0 -1.0);
+                    //注意这里z轴范围归一化0-1，保持了和正常遥控器一样的范围，最低为0 最高为1 默认中间为0.5
+                    //这种配置如果是飞STAB肯定有问题 但是如果飞定高就相当合适
+                    //所以全局只飞在定高模式下，在定高模式区分：空中 水面 还是水下，至于真实的定高效果可能还需要优化
+                    manual.z=(float)( RC_rec[3]/200.0 );   
 
-                    //为油门设置一个死区
-                    if(abs(_rc.z)<0.1)(_rc.z=0);
 
                     //既然遥控器数据OK，下面就进行发布了                  
-                    if (guanghua_rc_pub != NULL) {
-                        orb_publish(ORB_ID(guanghua_rc), guanghua_rc_pub, &_rc);
+                    //用航天光华的遥控器数据进行替换，原来在sensor.cpp中进行发布，那里已经屏蔽
+                    if (_manual_control_pub != NULL) {
+                    	orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
 
                     } else {
-                        guanghua_rc_pub = orb_advertise(ORB_ID(guanghua_rc), &_rc);
+                    	_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
                     }
 
                 }

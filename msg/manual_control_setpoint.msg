@@ -54,3 +54,5 @@ uint8 kill_switch		 # throttle kill: _NORMAL_, KILL
 uint8 transition_switch	 # VTOL transition switch: _HOVER, FORWARD_FLIGHT
 uint8 gear_switch	 # landing gear switch: _DOWN_, UP
 int8 mode_slot			 # the slot a specific model selector is in
+
+uint8[12] channel #填充光华遥控器11个通道的原始数据，预留一个字节备用 同时也保证内存字节的对齐
