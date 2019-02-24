@@ -239,7 +239,7 @@ int telem2_app_main(int argc, char *argv[])
 
                 if(check_data==RC_rec[11]){
                    
-                    warnx("check ok");
+                    //warnx("check ok");
 
                     for(int i=0;i<11;i++)
                     {
@@ -249,11 +249,11 @@ int telem2_app_main(int argc, char *argv[])
                     //四个摇杆的范围是0-200,其中中间是100,这里归一化为-1到1
                     manual.x=(float)( RC_rec[0]/100.0 -1.0); 
                     manual.y=(float)( RC_rec[1]/100.0 -1.0);
-                    manual.r=(float)( RC_rec[2]/100.0 -1.0);
+                    manual.r=(float)( RC_rec[3]/100.0 -1.0);
                     //注意这里z轴范围归一化0-1，保持了和正常遥控器一样的范围，最低为0 最高为1 默认中间为0.5
                     //这种配置如果是飞STAB肯定有问题 但是如果飞定高就相当合适
                     //所以全局只飞在定高模式下，在定高模式区分：空中 水面 还是水下，至于真实的定高效果可能还需要优化
-                    manual.z=(float)( RC_rec[3]/200.0 );   
+                    manual.z=(float)( RC_rec[2]/200.0 );   
 
 
                     //既然遥控器数据OK，下面就进行发布了                  
