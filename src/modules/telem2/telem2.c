@@ -25,9 +25,12 @@
 #include <px4_config.h>  
 #include <nuttx/sched.h>  
 #include <px4_tasks.h>
+#include <systemlib/param/param.h>
 
 #include <uORB/topics/actuator_controls.h>
 #include <uORB/topics/manual_control_setpoint.h>
+#include <uORB/topics/vehicle_command.h>
+#include <commander/px4_custom_mode.h>
 
 #include <math.h> 
 
@@ -38,17 +41,6 @@ static int daemon_task;             /**< Handle of daemon task / thread */
 static int uart_init(char * uart_name);
 static int set_uart_baudrate(const int fd, unsigned int baud);    
 
-int conut=0;
-int  yaw=0x00;     //存储yaw控制量放大10000倍 相当于混控器的作用
-int  throttle=0x00;//存储throttle控制量放大10000倍 相当于混控器的作用
-
-unsigned char mode=0x00;//功能字节mode 左转 右转
-unsigned char turn=0x00;//转弯的pwm 0-250
-
-unsigned char thr_low=0x00; //油门低字节
-unsigned char thr_high=0x00; //油门高字节
-
-unsigned char output[10]={0x00};//最终的串口输出
 
    
 __EXPORT int telem2_main(int argc, char *argv[]);
@@ -184,6 +176,46 @@ int telem2_app_main(int argc, char *argv[])
     memset(&manual, 0, sizeof(manual));
     orb_advert_t _manual_control_pub=NULL;
 
+    struct vehicle_command_s vcmd;
+    memset(&vcmd, 0, sizeof(vcmd));
+    orb_advert_t _vehicle_command_pub=NULL;
+
+
+
+    param_t sys_id_param = param_find("MAV_SYS_ID");
+	param_t comp_id_param = param_find("MAV_COMP_ID");
+
+	int32_t sys_id;
+	int32_t comp_id;
+
+	if (param_get(sys_id_param, &sys_id)) {
+		errx(1, "PRM SYSID");
+	}
+
+	if (param_get(comp_id_param, &comp_id)) {
+		errx(1, "PRM CMPID");
+	}
+
+
+
+
+    //遥控器数据的接收
+    unsigned char temp=0x00; //用来临时保存接收的一个字节的遥控器数据，遥控器数据要for循环一个一个接收，不用担心有遗漏。
+    unsigned char RC_rec[14]={0x00};//接收到的遥控器数据，主要保存正文部分
+    unsigned char count=0;      //计数
+    unsigned char check_data=0; //校验数据
+
+
+    //发布飞行模式 这两个按键组合出四种飞行模式
+    //                Rocker=0        Rocker=0=1
+    //  button=偶数   自稳（mode=1）    定高（mode=2）  备注：使用主题vehicle_command中的mode  区分三种不同的定高模式
+    //  button=奇数   水下（mode=8）    水面（mode=4）
+    unsigned char button=0;//检测按键按下 并松开
+    bool Press=false;
+    unsigned char Anti_shake=0;
+    unsigned char mode=0;
+    unsigned char mode_last=0;
+
 
     while (!thread_should_exit) { 
 
@@ -202,12 +234,6 @@ int telem2_app_main(int argc, char *argv[])
         // warnx("data has write back !");
 
 
-
-        //遥控器数据的接收
-        unsigned char temp=0x00; //用来临时保存接收的一个字节的遥控器数据，遥控器数据要for循环一个一个接收，不用担心有遗漏。
-        unsigned char RC_rec[14]={0x00};//接收到的遥控器数据，主要保存正文部分
-        unsigned char count=0;      //计数
-        unsigned char check_data=0; //校验数据
 
         count = read(uart_read,&temp,1);
 
@@ -264,6 +290,85 @@ int telem2_app_main(int argc, char *argv[])
                     } else {
                     	_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
                     }
+
+                    
+ 
+                    //检测那个按键按下并松开 这一部分按键5  RC_rec[4]，按下检测 松开算数的检测已经没问题
+                    if(RC_rec[4]==1){
+                        Anti_shake++;
+                        Press=true;
+                    }
+                    else if(Press&& (Anti_shake)>3){
+                        Anti_shake=0;
+                        Press=false;
+                        button++;
+                    }else{
+
+                    }
+                    //warnx("- %d",button);
+
+                    //记录上一次的飞行模式
+                    mode_last=mode;
+                    //判断最新的飞行模式切换 这一部分模式切换没有问题
+                    if ( button%2==0 ){//偶数
+                        
+                        if(RC_rec[5]==0){
+                            mode=1;
+                        }
+                        else{
+                            mode=2;
+                        }
+                        
+                    }
+                    else{
+                        if(RC_rec[5]==1){
+                            mode=4;
+                        }
+                        else{
+                            mode=8;
+                        }
+                    }
+                    //warnx("- %d",mode);
+
+                    //如果飞行模式发生了切换 发布
+                    if(mode!=mode_last)
+                    {
+                    //     if(mode!=1){
+
+                    //         vcmd.param1 = 29;//用参数213会出现一个问题：切换的时候会自动解锁
+                    //         vcmd.param2 = PX4_CUSTOM_MAIN_MODE_ALTCTL;
+                    //         vcmd.param3 = 0;
+                    //         vcmd.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;
+                    //         vcmd.target_system = sys_id;
+                    //         vcmd.target_component = comp_id;
+                    //         vcmd.source_system = sys_id;
+                    //         vcmd.source_component = comp_id;
+
+                    //     }else{
+
+                    //         vcmd.param1 = 29;//用参数213会出现一个问题：切换的时候会自动解锁
+                    //         vcmd.param2 = PX4_CUSTOM_MAIN_MODE_MANUAL;
+                    //         vcmd.param3 = 0;
+                    //         vcmd.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;
+                    //         vcmd.target_system = sys_id;
+                    //         vcmd.target_component = comp_id;
+                    //         vcmd.source_system = sys_id;
+                    //         vcmd.source_component = comp_id;
+
+                    //     }
+
+
+                        if (_vehicle_command_pub != NULL) {
+                                orb_publish(ORB_ID(vehicle_command), _vehicle_command_pub, &vcmd);
+                        } else {
+                                _vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &vcmd);
+                        }
+
+
+                    }
+
+
+
 
                 }
                 else{
