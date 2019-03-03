@@ -926,7 +926,7 @@ then
 	fi
 
 	if telem2 start
-	the 
+	then 
 		echo "telem2 start success"
 	else
 		echo "telem2 start failed"
