@@ -1441,20 +1441,20 @@ MavlinkReceiver::handle_message_manual_control(mavlink_message_t *msg)
 		}
 
 	} else {
-		struct manual_control_setpoint_s manual = {};
+		// struct manual_control_setpoint_s manual = {};
 
-		manual.timestamp = hrt_absolute_time();
-		manual.x = man.x / 1000.0f;
-		manual.y = man.y / 1000.0f;
-		manual.r = man.r / 1000.0f;
-		manual.z = man.z / 1000.0f;
+		// manual.timestamp = hrt_absolute_time();
+		// manual.x = man.x / 1000.0f;
+		// manual.y = man.y / 1000.0f;
+		// manual.r = man.r / 1000.0f;
+		// manual.z = man.z / 1000.0f;
 
-		if (_manual_pub == nullptr) {
-			_manual_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
+		// if (_manual_pub == nullptr) {
+		// 	_manual_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
 
-		} else {
-			orb_publish(ORB_ID(manual_control_setpoint), _manual_pub, &manual);
-		}
+		// } else {
+		// 	orb_publish(ORB_ID(manual_control_setpoint), _manual_pub, &manual);
+		// }
 	}
 }
 

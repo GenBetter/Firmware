@@ -219,7 +219,7 @@ static bool warning_action_on = false;
 
 static struct status_flags_s status_flags = {};
 
-static uint64_t rc_signal_lost_timestamp;		// Time at which the RC reception was lost
+//static uint64_t rc_signal_lost_timestamp;		// Time at which the RC reception was lost
 
 static float avionics_power_rail_voltage;		// voltage of the avionics power rail
 
@@ -1665,7 +1665,7 @@ int commander_thread_main(int argc, char *argv[])
 	}
 
 	// user adjustable duration required to assert arm/disarm via throttle/rudder stick
-	int32_t rc_arm_hyst = 100;
+	int32_t rc_arm_hyst = 15;
 	param_get(_param_rc_arm_hyst, &rc_arm_hyst);
 	rc_arm_hyst *= COMMANDER_MONITORING_LOOPSPERMSEC;
 
@@ -2545,36 +2545,33 @@ int commander_thread_main(int argc, char *argv[])
 			_last_mission_instance = _mission_result.instance_count;
 		}
 
-		/* RC input check */
-		if (!status_flags.rc_input_blocked && sp_man.timestamp != 0 &&
-		    (hrt_absolute_time() < sp_man.timestamp + (uint64_t)(rc_loss_timeout * 1e6f))) {
-			/* handle the case where RC signal was regained */
-			if (!status_flags.rc_signal_found_once) {
-				status_flags.rc_signal_found_once = true;
-				status_changed = true;
 
-			} else {
-				if (status.rc_signal_lost) {
-					mavlink_log_info(&mavlink_log_pub, "MANUAL CONTROL REGAINED after %llums",
-							     (hrt_absolute_time() - rc_signal_lost_timestamp) / 1000);
-					status_changed = true;
-				}
-			}
 
-			status.rc_signal_lost = false;
+
+		// /* RC input check */
+		// if (!status_flags.rc_input_blocked && sp_man.timestamp != 0 &&
+		//     (hrt_absolute_time() < sp_man.timestamp + (uint64_t)(rc_loss_timeout * 1e6f))) {
+		// 	/* handle the case where RC signal was regained */
+		// 	if (!status_flags.rc_signal_found_once) {
+		// 		status_flags.rc_signal_found_once = true;
+		// 		status_changed = true;
+
+		// 	} else {
+		// 		if (status.rc_signal_lost) {
+		// 			mavlink_log_info(&mavlink_log_pub, "MANUAL CONTROL REGAINED after %llums",
+		// 					     (hrt_absolute_time() - rc_signal_lost_timestamp) / 1000);
+		// 			status_changed = true;
+		// 		}
+		// 	}
+
+		// 	status.rc_signal_lost = false;
 
 			/* check if left stick is in lower left position and we are in MANUAL, Rattitude, or AUTO_READY mode or (ASSIST mode and landed) -> disarm
 			 * do it only for rotary wings in manual mode or fixed wing if landed */
-			if ((status.is_rotary_wing || (!status.is_rotary_wing && land_detector.landed)) && status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF &&
-			    (status.arming_state == vehicle_status_s::ARMING_STATE_ARMED || status.arming_state == vehicle_status_s::ARMING_STATE_ARMED_ERROR) &&
-			    (internal_state.main_state == commander_state_s::MAIN_STATE_MANUAL ||
-			    	internal_state.main_state == commander_state_s::MAIN_STATE_ACRO ||
-			    	internal_state.main_state == commander_state_s::MAIN_STATE_STAB ||
-			    	internal_state.main_state == commander_state_s::MAIN_STATE_RATTITUDE ||
-			    	land_detector.landed) &&
-			    sp_man.r < -STICK_ON_OFF_LIMIT && sp_man.z < 0.1f) {
+			if (sp_man.r < -0.9f && sp_man.z < 0.1f) {
 
 				if (stick_off_counter > rc_arm_hyst) {
+					warnx("disarm");
 					/* disarm to STANDBY if ARMED or to STANDBY_ERROR if ARMED_ERROR */
 					arming_state_t new_arming_state = (status.arming_state == vehicle_status_s::ARMING_STATE_ARMED ? vehicle_status_s::ARMING_STATE_STANDBY :
 									   vehicle_status_s::ARMING_STATE_STANDBY_ERROR);
@@ -2604,9 +2601,13 @@ int commander_thread_main(int argc, char *argv[])
 				stick_off_counter = 0;
 			}
 
+			//warnx("r=%2.2f ",(double)sp_man.r);
+
+
 			/* check if left stick is in lower right position and we're in MANUAL mode -> arm */
-			if (sp_man.r > STICK_ON_OFF_LIMIT && sp_man.z < 0.1f && status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF ) {
+			if (sp_man.r > 0.9f && sp_man.z < 0.1f ) {
 				if (stick_on_counter > rc_arm_hyst) {
+					warnx("-----arm = %d",status.arming_state);
 
 					/* we check outside of the transition function here because the requirement
 					 * for being in manual mode only applies to manual arming actions.
@@ -2646,10 +2647,14 @@ int commander_thread_main(int argc, char *argv[])
 							print_reject_arm("NOT ARMING: Preflight checks failed");
 						}
 					}
+					else{
+						warnx(" error");
+					}
 					stick_on_counter = 0;
 
 				} else {
 					stick_on_counter++;
+					//warnx("%d",stick_on_counter);
 				}
 
 			} else {
@@ -2676,43 +2681,43 @@ int commander_thread_main(int argc, char *argv[])
 				tune_negative(true);
 			}
 
-			/* evaluate the main state machine according to mode switches */
-			bool first_rc_eval = (_last_sp_man.timestamp == 0) && (sp_man.timestamp > 0);
-			transition_result_t main_res = set_main_state_rc(&status);
+			// /* evaluate the main state machine according to mode switches */
+			// bool first_rc_eval = (_last_sp_man.timestamp == 0) && (sp_man.timestamp > 0);
+			// transition_result_t main_res = set_main_state_rc(&status);
 
-			/* play tune on mode change only if armed, blink LED always */
-			if (main_res == TRANSITION_CHANGED || first_rc_eval) {
-				tune_positive(armed.armed);
-				main_state_changed = true;
+			// /* play tune on mode change only if armed, blink LED always */
+			// if (main_res == TRANSITION_CHANGED || first_rc_eval) {
+			// 	tune_positive(armed.armed);
+			// 	main_state_changed = true;
 
-			} else if (main_res == TRANSITION_DENIED) {
-				/* DENIED here indicates bug in the commander */
-				mavlink_log_critical(&mavlink_log_pub, "main state transition denied");
-			}
+			// } else if (main_res == TRANSITION_DENIED) {
+			// 	/* DENIED here indicates bug in the commander */
+			// 	mavlink_log_critical(&mavlink_log_pub, "main state transition denied");
+			// }
 
-			/* check throttle kill switch */
-			if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_ON) {
-				/* set lockdown flag */
-				if (!armed.lockdown) {
-					mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH ENGAGED");
-				}
-				armed.lockdown = true;
-			} else if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_OFF) {
-				if (armed.lockdown) {
-					mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH OFF");
-				}
-				armed.lockdown = false;
-			}
-			/* no else case: do not change lockdown flag in unconfigured case */
+			// /* check throttle kill switch */
+			// if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_ON) {
+			// 	/* set lockdown flag */
+			// 	if (!armed.lockdown) {
+			// 		mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH ENGAGED");
+			// 	}
+			// 	armed.lockdown = true;
+			// } else if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_OFF) {
+			// 	if (armed.lockdown) {
+			// 		mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH OFF");
+			// 	}
+			// 	armed.lockdown = false;
+			// }
+			// /* no else case: do not change lockdown flag in unconfigured case */
 
-		} else {
-			if (!status_flags.rc_input_blocked && !status.rc_signal_lost) {
-				mavlink_log_critical(&mavlink_log_pub, "MANUAL CONTROL LOST (at t=%llums)", hrt_absolute_time() / 1000);
-				status.rc_signal_lost = true;
-				rc_signal_lost_timestamp = sp_man.timestamp;
-				status_changed = true;
-			}
-		}
+		// } else {
+		// 	if (!status_flags.rc_input_blocked && !status.rc_signal_lost) {
+		// 		mavlink_log_critical(&mavlink_log_pub, "MANUAL CONTROL LOST (at t=%llums)", hrt_absolute_time() / 1000);
+		// 		status.rc_signal_lost = true;
+		// 		rc_signal_lost_timestamp = sp_man.timestamp;
+		// 		status_changed = true;
+		// 	}
+		// }
 
 		/* data links check */
 		bool have_link = false;

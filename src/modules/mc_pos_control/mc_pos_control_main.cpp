@@ -1283,13 +1283,13 @@ void MulticopterPositionControl::control_auto(float dt)
 		if ((_pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_POSITION ||
 		     _pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_LOITER) &&
 		    !_vehicle_land_detected.landed) {
-			_att_sp.landing_gear = 1.0f;
+			//_att_sp.landing_gear = 1.0f;
 
 			// During takeoff and landing, we better put it down again.
 
 		} else if (_pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF ||
 			   _pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_LAND) {
-			_att_sp.landing_gear = -1.0f;
+			//_att_sp.landing_gear = -1.0f;
 
 		} else {
 			// For the rest of the setpoint types, just leave it as is.
@@ -1344,7 +1344,7 @@ MulticopterPositionControl::task_main()
 	thrust_int.zero();
 
 	// Let's be safe and have the landing gear down by default
-	_att_sp.landing_gear = -1.0f;
+	//_att_sp.landing_gear = -1.0f;
 
 
 	matrix::Dcmf R;
@@ -2175,10 +2175,10 @@ MulticopterPositionControl::task_main()
 
 			if (_manual.gear_switch == manual_control_setpoint_s::SWITCH_POS_ON &&
 			    !_vehicle_land_detected.landed) {
-				_att_sp.landing_gear = 1.0f;
+				//_att_sp.landing_gear = 1.0f;
 
 			} else if (_manual.gear_switch == manual_control_setpoint_s::SWITCH_POS_OFF) {
-				_att_sp.landing_gear = -1.0f;
+				//_att_sp.landing_gear = -1.0f;
 			}
 
 

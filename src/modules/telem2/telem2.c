@@ -178,7 +178,7 @@ int telem2_app_main(int argc, char *argv[])
 
     struct vehicle_command_s vcmd;
     memset(&vcmd, 0, sizeof(vcmd));
-    orb_advert_t _vehicle_command_pub=NULL;
+    //orb_advert_t _vehicle_command_pub=NULL;
 
 
 
@@ -284,12 +284,7 @@ int telem2_app_main(int argc, char *argv[])
 
                     //既然遥控器数据OK，下面就进行发布了                  
                     //用航天光华的遥控器数据进行替换，原来在sensor.cpp中进行发布，那里已经屏蔽
-                    if (_manual_control_pub != NULL) {
-                    	orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
 
-                    } else {
-                    	_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
-                    }
 
                     
  
@@ -330,7 +325,15 @@ int telem2_app_main(int argc, char *argv[])
                     }
                     //warnx("- %d",mode);
 
-                    //如果飞行模式发生了切换 发布
+                     manual.gear_switch=mode;
+                    if (_manual_control_pub != NULL) {
+                    	orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
+
+                    } else {
+                    	_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
+                    }
+
+                    // //如果飞行模式发生了切换 发布
                     if(mode!=mode_last)
                     {
                     //     if(mode!=1){
@@ -358,13 +361,11 @@ int telem2_app_main(int argc, char *argv[])
                     //     }
 
 
-                        if (_vehicle_command_pub != NULL) {
-                                orb_publish(ORB_ID(vehicle_command), _vehicle_command_pub, &vcmd);
-                        } else {
-                                _vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &vcmd);
-                        }
-
-
+                    //     if (_vehicle_command_pub != NULL) {
+                    //             orb_publish(ORB_ID(vehicle_command), _vehicle_command_pub, &vcmd);
+                    //     } else {
+                    //             _vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &vcmd);
+                    //     }
                     }
 
 
