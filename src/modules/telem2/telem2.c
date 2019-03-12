@@ -178,7 +178,7 @@ int telem2_app_main(int argc, char *argv[])
 
     struct vehicle_command_s vcmd;
     memset(&vcmd, 0, sizeof(vcmd));
-    //orb_advert_t _vehicle_command_pub=NULL;
+    orb_advert_t _vehicle_command_pub=NULL;
 
 
 
@@ -208,7 +208,7 @@ int telem2_app_main(int argc, char *argv[])
 
     //发布飞行模式 这两个按键组合出四种飞行模式
     //                Rocker=0        Rocker=0=1
-    //  button=偶数   自稳（mode=1）    定高（mode=2）  备注：使用主题vehicle_command中的mode  区分三种不同的定高模式
+    //  button=偶数   自稳（mode=1）    定高（mode=2）  备注：使用gear_switch  区分三种不同的定高模式
     //  button=奇数   水下（mode=8）    水面（mode=4）
     unsigned char button=0;//检测按键按下 并松开
     bool Press=false;
@@ -322,8 +322,7 @@ int telem2_app_main(int argc, char *argv[])
                         else{
                             mode=8;
                         }
-                    }
-                    //warnx("- %d",mode);
+                    }                  
 
                      manual.gear_switch=mode;
                     if (_manual_control_pub != NULL) {
@@ -335,37 +334,42 @@ int telem2_app_main(int argc, char *argv[])
 
                     // //如果飞行模式发生了切换 发布
                     if(mode!=mode_last)
-                    {
-                    //     if(mode!=1){
+                    {   
 
-                    //         vcmd.param1 = 29;//用参数213会出现一个问题：切换的时候会自动解锁
-                    //         vcmd.param2 = PX4_CUSTOM_MAIN_MODE_ALTCTL;
-                    //         vcmd.param3 = 0;
-                    //         vcmd.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;
-                    //         vcmd.target_system = sys_id;
-                    //         vcmd.target_component = comp_id;
-                    //         vcmd.source_system = sys_id;
-                    //         vcmd.source_component = comp_id;
+                        //  自稳（mode=1）    定高（mode=2）  备注：使用gear_switch  区分三种不同的定高模式
+                        //  水下（mode=8）    水面（mode=4）
+                        //warnx("mode = %d",mode);
 
-                    //     }else{
+                        if(mode!=1){
 
-                    //         vcmd.param1 = 29;//用参数213会出现一个问题：切换的时候会自动解锁
-                    //         vcmd.param2 = PX4_CUSTOM_MAIN_MODE_MANUAL;
-                    //         vcmd.param3 = 0;
-                    //         vcmd.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;
-                    //         vcmd.target_system = sys_id;
-                    //         vcmd.target_component = comp_id;
-                    //         vcmd.source_system = sys_id;
-                    //         vcmd.source_component = comp_id;
+                            vcmd.param1 = 29;//用参数213会出现一个问题：切换的时候会自动解锁
+                            vcmd.param2 = PX4_CUSTOM_MAIN_MODE_ALTCTL;
+                            vcmd.param3 = 0;
+                            vcmd.command = 176;
+                            vcmd.target_system = sys_id;
+                            vcmd.target_component = comp_id;
+                            vcmd.source_system = sys_id;
+                            vcmd.source_component = comp_id;
 
-                    //     }
+                        }else{
+
+                            vcmd.param1 = 29;//用参数213会出现一个问题：切换的时候会自动解锁
+                            vcmd.param2 = PX4_CUSTOM_MAIN_MODE_MANUAL;
+                            vcmd.param3 = 0;
+                            vcmd.command = 176;
+                            vcmd.target_system = sys_id;
+                            vcmd.target_component = comp_id;
+                            vcmd.source_system = sys_id;
+                            vcmd.source_component = comp_id;
+
+                        }
 
 
-                    //     if (_vehicle_command_pub != NULL) {
-                    //             orb_publish(ORB_ID(vehicle_command), _vehicle_command_pub, &vcmd);
-                    //     } else {
-                    //             _vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &vcmd);
-                    //     }
+                        if (_vehicle_command_pub != NULL) {
+                                orb_publish(ORB_ID(vehicle_command), _vehicle_command_pub, &vcmd);
+                        } else {
+                                _vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &vcmd);
+                        }
                     }
 
 
