@@ -2571,7 +2571,6 @@ int commander_thread_main(int argc, char *argv[])
 			if (sp_man.r < -0.9f && sp_man.z < 0.1f) {
 
 				if (stick_off_counter > rc_arm_hyst) {
-					warnx("disarm");
 					/* disarm to STANDBY if ARMED or to STANDBY_ERROR if ARMED_ERROR */
 					arming_state_t new_arming_state = (status.arming_state == vehicle_status_s::ARMING_STATE_ARMED ? vehicle_status_s::ARMING_STATE_STANDBY :
 									   vehicle_status_s::ARMING_STATE_STANDBY_ERROR);
@@ -2607,7 +2606,6 @@ int commander_thread_main(int argc, char *argv[])
 			/* check if left stick is in lower right position and we're in MANUAL mode -> arm */
 			if (sp_man.r > 0.9f && sp_man.z < 0.1f ) {
 				if (stick_on_counter > rc_arm_hyst) {
-					warnx("-----arm = %d",status.arming_state);
 
 					/* we check outside of the transition function here because the requirement
 					 * for being in manual mode only applies to manual arming actions.
@@ -2961,6 +2959,12 @@ int commander_thread_main(int argc, char *argv[])
 			status.timestamp = now;
 			orb_publish(ORB_ID(vehicle_status), status_pub, &status);
 
+			// static uint8_t arming_state_copy=0;
+			// if(arming_state_copy!=status.arming_state){
+			// 	warnx("---------arming_state=%d",status.arming_state);
+			// 	arming_state_copy=status.arming_state;
+			// }
+				
 			armed.timestamp = now;
 
 			/* set prearmed state if safety is off, or safety is not present and 5 seconds passed */
