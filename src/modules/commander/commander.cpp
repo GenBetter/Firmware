@@ -3964,7 +3964,7 @@ void *commander_low_prio_loop(void *arg)
 					} else if ((int)(cmd.param4) == 2) {
 						/* RC trim calibration */
 						answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED, command_ack_pub, command_ack);
-						calib_ret = do_trim_calibration(&mavlink_log_pub);
+						//calib_ret = do_trim_calibration(&mavlink_log_pub);
 
 					} else if ((int)(cmd.param5) == 1) {
 						/* accelerometer calibration */
