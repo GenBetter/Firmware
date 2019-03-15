@@ -517,173 +517,178 @@ PX4FMU::flash_safety_button()
 #endif
 }
 
+//全局搜索AUX用作GPIO输出高低电平
+//取消AUX pwm的设置
 int
 PX4FMU::set_mode(Mode mode)
 {
-	unsigned old_mask = _pwm_mask;
+// {
+// 	unsigned old_mask = _pwm_mask;
 
-	/*
-	 * Configure for PWM output.
-	 *
-	 * Note that regardless of the configured mode, the task is always
-	 * listening and mixing; the mode just selects which of the channels
-	 * are presented on the output pins.
-	 */
-	switch (mode) {
-	case MODE_1PWM:
-		/* default output rates */
-		_pwm_default_rate = 50;
-		_pwm_alt_rate = 50;
-		_pwm_alt_rate_channels = 0;
-		_pwm_mask = 0x1;
-		_pwm_initialized = false;
-		break;
+// 	/*
+// 	 * Configure for PWM output.
+// 	 *
+// 	 * Note that regardless of the configured mode, the task is always
+// 	 * listening and mixing; the mode just selects which of the channels
+// 	 * are presented on the output pins.
+// 	 */
+// 	switch (mode) {
+// 	case MODE_1PWM:
+// 		/* default output rates */
+// 		_pwm_default_rate = 50;
+// 		_pwm_alt_rate = 50;
+// 		_pwm_alt_rate_channels = 0;
+// 		_pwm_mask = 0x1;
+// 		_pwm_initialized = false;
+// 		break;
 
-	case MODE_2PWM2CAP:	// v1 multi-port with flow control lines as PWM
-		up_input_capture_set(2, Rising, 0, NULL, NULL);
-		up_input_capture_set(3, Rising, 0, NULL, NULL);
-		DEVICE_DEBUG("MODE_2PWM2CAP");
+// 	case MODE_2PWM2CAP:	// v1 multi-port with flow control lines as PWM
+// 		up_input_capture_set(2, Rising, 0, NULL, NULL);
+// 		up_input_capture_set(3, Rising, 0, NULL, NULL);
+// 		DEVICE_DEBUG("MODE_2PWM2CAP");
 
-	// no break
-	case MODE_2PWM:	// v1 multi-port with flow control lines as PWM
-		DEVICE_DEBUG("MODE_2PWM");
+// 	// no break
+// 	case MODE_2PWM:	// v1 multi-port with flow control lines as PWM
+// 		DEVICE_DEBUG("MODE_2PWM");
 
-		/* default output rates */
-		_pwm_default_rate = 50;
-		_pwm_alt_rate = 50;
-		_pwm_alt_rate_channels = 0;
-		_pwm_mask = 0x3;
-		_pwm_initialized = false;
+// 		/* default output rates */
+// 		_pwm_default_rate = 50;
+// 		_pwm_alt_rate = 50;
+// 		_pwm_alt_rate_channels = 0;
+// 		_pwm_mask = 0x3;
+// 		_pwm_initialized = false;
 
-		break;
+// 		break;
 
-	case MODE_3PWM1CAP:	// v1 multi-port with flow control lines as PWM
-		DEVICE_DEBUG("MODE_3PWM1CAP");
-		up_input_capture_set(3, Rising, 0, NULL, NULL);
+// 	case MODE_3PWM1CAP:	// v1 multi-port with flow control lines as PWM
+// 		DEVICE_DEBUG("MODE_3PWM1CAP");
+// 		up_input_capture_set(3, Rising, 0, NULL, NULL);
 
-	// no break
-	case MODE_3PWM:	// v1 multi-port with flow control lines as PWM
-		DEVICE_DEBUG("MODE_3PWM");
+// 	// no break
+// 	case MODE_3PWM:	// v1 multi-port with flow control lines as PWM
+// 		DEVICE_DEBUG("MODE_3PWM");
 
-		/* default output rates */
-		_pwm_default_rate = 50;
-		_pwm_alt_rate = 50;
-		_pwm_alt_rate_channels = 0;
-		_pwm_mask = 0x7;
-		_pwm_initialized = false;
-		break;
+// 		/* default output rates */
+// 		_pwm_default_rate = 50;
+// 		_pwm_alt_rate = 50;
+// 		_pwm_alt_rate_channels = 0;
+// 		_pwm_mask = 0x7;
+// 		_pwm_initialized = false;
+// 		break;
 
-	case MODE_4PWM: // v1 or v2 multi-port as 4 PWM outs
-		DEVICE_DEBUG("MODE_4PWM");
+// 	case MODE_4PWM: // v1 or v2 multi-port as 4 PWM outs
+// 		DEVICE_DEBUG("MODE_4PWM");
 
-		/* default output rates */
-		_pwm_default_rate = 50;
-		_pwm_alt_rate = 50;
-		_pwm_alt_rate_channels = 0;
-		_pwm_mask = 0xf;
-		_pwm_initialized = false;
+// 		/* default output rates */
+// 		_pwm_default_rate = 50;
+// 		_pwm_alt_rate = 50;
+// 		_pwm_alt_rate_channels = 0;
+// 		_pwm_mask = 0xf;
+// 		_pwm_initialized = false;
 
-		break;
+// 		break;
 
-#if defined(BOARD_HAS_PWM) && BOARD_HAS_PWM >= 6
+// #if defined(BOARD_HAS_PWM) && BOARD_HAS_PWM >= 6
 
-	case MODE_6PWM:
-		DEVICE_DEBUG("MODE_6PWM");
+// 	case MODE_6PWM:
+// 		DEVICE_DEBUG("MODE_6PWM");
 
-		/* default output rates */
-		_pwm_default_rate = 50;
-		_pwm_alt_rate = 50;
-		_pwm_alt_rate_channels = 0;
-		_pwm_mask = 0x3f;
-		_pwm_initialized = false;
+// 		/* default output rates */
+// 		_pwm_default_rate = 50;
+// 		_pwm_alt_rate = 50;
+// 		_pwm_alt_rate_channels = 0;
+// 		_pwm_mask = 0x3f;
+// 		_pwm_initialized = false;
 
-		break;
-#endif
+// 		break;
+// #endif
 
-#if defined(BOARD_HAS_PWM) && BOARD_HAS_PWM >= 8
+// #if defined(BOARD_HAS_PWM) && BOARD_HAS_PWM >= 8
 
-	case MODE_8PWM: // AeroCore PWMs as 8 PWM outs
-		DEVICE_DEBUG("MODE_8PWM");
-		/* default output rates */
-		_pwm_default_rate = 50;
-		_pwm_alt_rate = 50;
-		_pwm_alt_rate_channels = 0;
-		_pwm_mask = 0xff;
-		_pwm_initialized = false;
-		break;
-#endif
+// 	case MODE_8PWM: // AeroCore PWMs as 8 PWM outs
+// 		DEVICE_DEBUG("MODE_8PWM");
+// 		/* default output rates */
+// 		_pwm_default_rate = 50;
+// 		_pwm_alt_rate = 50;
+// 		_pwm_alt_rate_channels = 0;
+// 		_pwm_mask = 0xff;
+// 		_pwm_initialized = false;
+// 		break;
+// #endif
 
-	case MODE_NONE:
-		DEVICE_DEBUG("MODE_NONE");
+// 	case MODE_NONE:
+// 		DEVICE_DEBUG("MODE_NONE");
 
-		_pwm_default_rate = 10;	/* artificially reduced output rate */
-		_pwm_alt_rate = 10;
-		_pwm_alt_rate_channels = 0;
-		_pwm_mask = 0x0;
-		_pwm_initialized = false;
+// 		_pwm_default_rate = 10;	/* artificially reduced output rate */
+// 		_pwm_alt_rate = 10;
+// 		_pwm_alt_rate_channels = 0;
+// 		_pwm_mask = 0x0;
+// 		_pwm_initialized = false;
 
-		if (old_mask != _pwm_mask) {
-			/* disable servo outputs - no need to set rates */
-			up_pwm_servo_deinit();
-		}
+// 		if (old_mask != _pwm_mask) {
+// 			/* disable servo outputs - no need to set rates */
+// 			up_pwm_servo_deinit();
+// 		}
 
-		break;
+// 		break;
 
-	default:
-		return -EINVAL;
-	}
+// 	default:
+// 		return -EINVAL;
+// 	}
 
-	_mode = mode;
+// 	_mode = mode;
 	return OK;
 }
 
+//全局搜索AUX用作GPIO输出高低电平
+//取消AUX pwm的设置
 int
 PX4FMU::set_pwm_rate(uint32_t rate_map, unsigned default_rate, unsigned alt_rate)
 {
-	DEVICE_DEBUG("set_pwm_rate %x %u %u", rate_map, default_rate, alt_rate);
+	// DEVICE_DEBUG("set_pwm_rate %x %u %u", rate_map, default_rate, alt_rate);
 
-	for (unsigned pass = 0; pass < 2; pass++) {
-		for (unsigned group = 0; group < _max_actuators; group++) {
+	// for (unsigned pass = 0; pass < 2; pass++) {
+	// 	for (unsigned group = 0; group < _max_actuators; group++) {
 
-			// get the channel mask for this rate group
-			uint32_t mask = up_pwm_servo_get_rate_group(group);
+	// 		// get the channel mask for this rate group
+	// 		uint32_t mask = up_pwm_servo_get_rate_group(group);
 
-			if (mask == 0) {
-				continue;
-			}
+	// 		if (mask == 0) {
+	// 			continue;
+	// 		}
 
-			// all channels in the group must be either default or alt-rate
-			uint32_t alt = rate_map & mask;
+	// 		// all channels in the group must be either default or alt-rate
+	// 		uint32_t alt = rate_map & mask;
 
-			if (pass == 0) {
-				// preflight
-				if ((alt != 0) && (alt != mask)) {
-					warn("rate group %u mask %x bad overlap %x", group, mask, alt);
-					// not a legal map, bail
-					return -EINVAL;
-				}
+	// 		if (pass == 0) {
+	// 			// preflight
+	// 			if ((alt != 0) && (alt != mask)) {
+	// 				warn("rate group %u mask %x bad overlap %x", group, mask, alt);
+	// 				// not a legal map, bail
+	// 				return -EINVAL;
+	// 			}
 
-			} else {
-				// set it - errors here are unexpected
-				if (alt != 0) {
-					if (up_pwm_servo_set_rate_group_update(group, _pwm_alt_rate) != OK) {
-						warn("rate group set alt failed");
-						return -EINVAL;
-					}
+	// 		} else {
+	// 			// set it - errors here are unexpected
+	// 			if (alt != 0) {
+	// 				if (up_pwm_servo_set_rate_group_update(group, _pwm_alt_rate) != OK) {
+	// 					warn("rate group set alt failed");
+	// 					return -EINVAL;
+	// 				}
 
-				} else {
-					if (up_pwm_servo_set_rate_group_update(group, _pwm_default_rate) != OK) {
-						warn("rate group set default failed");
-						return -EINVAL;
-					}
-				}
-			}
-		}
-	}
+	// 			} else {
+	// 				if (up_pwm_servo_set_rate_group_update(group, _pwm_default_rate) != OK) {
+	// 					warn("rate group set default failed");
+	// 					return -EINVAL;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 
-	_pwm_alt_rate_channels = rate_map;
-	_pwm_default_rate = default_rate;
-	_pwm_alt_rate = alt_rate;
+	// _pwm_alt_rate_channels = rate_map;
+	// _pwm_default_rate = default_rate;
+	// _pwm_alt_rate = alt_rate;
 
 	return OK;
 }
@@ -734,44 +739,48 @@ PX4FMU::subscribe()
 	}
 }
 
+//全局搜索AUX用作GPIO输出高低电平
+//取消AUX pwm的设置
 void
 PX4FMU::update_pwm_rev_mask()
 {
-	_reverse_pwm_mask = 0;
+	// _reverse_pwm_mask = 0;
 
-	for (unsigned i = 0; i < _max_actuators; i++) {
-		char pname[16];
-		int32_t ival;
+	// for (unsigned i = 0; i < _max_actuators; i++) {
+	// 	char pname[16];
+	// 	int32_t ival;
 
-		/* fill the channel reverse mask from parameters */
-		sprintf(pname, "PWM_AUX_REV%d", i + 1);
-		param_t param_h = param_find(pname);
+	// 	/* fill the channel reverse mask from parameters */
+	// 	sprintf(pname, "PWM_AUX_REV%d", i + 1);
+	// 	param_t param_h = param_find(pname);
 
-		if (param_h != PARAM_INVALID) {
-			param_get(param_h, &ival);
-			_reverse_pwm_mask |= ((int16_t)(ival != 0)) << i;
-		}
-	}
+	// 	if (param_h != PARAM_INVALID) {
+	// 		param_get(param_h, &ival);
+	// 		_reverse_pwm_mask |= ((int16_t)(ival != 0)) << i;
+	// 	}
+	// }
 }
 
+//全局搜索AUX用作GPIO输出高低电平
+//取消AUX pwm的设置
 void
 PX4FMU::publish_pwm_outputs(uint16_t *values, size_t numvalues)
 {
-	actuator_outputs_s outputs = {};
-	outputs.noutputs = numvalues;
-	outputs.timestamp = hrt_absolute_time();
+	// actuator_outputs_s outputs = {};
+	// outputs.noutputs = numvalues;
+	// outputs.timestamp = hrt_absolute_time();
 
-	for (size_t i = 0; i < _max_actuators; ++i) {
-		outputs.output[i] = i < numvalues ? (float)values[i] : 0;
-	}
+	// for (size_t i = 0; i < _max_actuators; ++i) {
+	// 	outputs.output[i] = i < numvalues ? (float)values[i] : 0;
+	// }
 
-	if (_outputs_pub == nullptr) {
-		int instance = -1;
-		_outputs_pub = orb_advertise_multi(ORB_ID(actuator_outputs), &outputs, &instance, ORB_PRIO_DEFAULT);
+	// if (_outputs_pub == nullptr) {
+	// 	int instance = -1;
+	// 	_outputs_pub = orb_advertise_multi(ORB_ID(actuator_outputs), &outputs, &instance, ORB_PRIO_DEFAULT);
 
-	} else {
-		orb_publish(ORB_ID(actuator_outputs), _outputs_pub, &outputs);
-	}
+	// } else {
+	// 	orb_publish(ORB_ID(actuator_outputs), _outputs_pub, &outputs);
+	// }
 }
 
 

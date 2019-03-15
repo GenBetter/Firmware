@@ -1831,6 +1831,25 @@ int commander_thread_main(int argc, char *argv[])
 			}
 		}
 
+		//全局搜索AUX用作GPIO输出高低电平
+		//把AUX1-4用作GPIO 通过下面语句输出高低电平
+		//借助普通pixhawk的AUX1-4 用作GPIO端口 输出高低电平
+		static bool once=true;
+		if(once){
+			once=false;
+			warnx("--------------------------------------------");
+			stm32_gpiowrite(GPIO_AUX4,1);
+			stm32_gpiowrite(GPIO_AUX3,0);
+			stm32_gpiowrite(GPIO_AUX2,1);
+			stm32_gpiowrite(GPIO_AUX1,0);
+
+		}
+
+
+
+
+		
+
 		orb_check(sp_man_sub, &updated);
 
 		if (updated) {

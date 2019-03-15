@@ -200,6 +200,13 @@ __EXPORT int nsh_archinitialize(void)
 	px4_arch_configgpio(GPIO_GPIO4_OUTPUT);
 	px4_arch_configgpio(GPIO_GPIO5_OUTPUT);
 
+//全局搜索AUX用作GPIO输出高低电平
+//AUX1-4引脚初始化
+	stm32_configgpio(GPIO_AUX4);
+	stm32_configgpio(GPIO_AUX3);
+	stm32_configgpio(GPIO_AUX2);
+	stm32_configgpio(GPIO_AUX1);
+
 	/* configure the high-resolution time/callout interface */
 	hrt_init();
 
