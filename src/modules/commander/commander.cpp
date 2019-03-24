@@ -1838,11 +1838,12 @@ int commander_thread_main(int argc, char *argv[])
 		if(once){
 			once=false;
 			warnx("--------------------------------------------");
+			//GPIO的读写可以参考 px4fmu2_led.c中的实现
+			//因为我这里使用的是aux的引脚 所以需要屏蔽fmu.cpp对其的初始化和输出
 			stm32_gpiowrite(GPIO_AUX4,1);
 			stm32_gpiowrite(GPIO_AUX3,0);
 			stm32_gpiowrite(GPIO_AUX2,1);
 			stm32_gpiowrite(GPIO_AUX1,0);
-
 		}
 
 
