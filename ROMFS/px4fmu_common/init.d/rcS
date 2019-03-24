@@ -927,9 +927,16 @@ then
 
 	if telem2 start
 	then 
-		echo "telem2 start success"
+		echo "---------telem2 start success"
 	else
-		echo "telem2 start failed"
+		echo "---------telem2 start failed"
+	fi
+
+	if ms5837 start
+	then 
+		echo "---ms5837 start success"
+	else
+		echo "---ms5837 start failed"
 	fi
 
 # End of autostart

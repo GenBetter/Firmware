@@ -125,6 +125,7 @@ set(config_module_list
 	modules/uORB
 	modules/dataman
 	modules/telem2
+	modules/ms5837
 
 	#
 	# Libraries

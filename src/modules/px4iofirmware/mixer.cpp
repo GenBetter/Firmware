@@ -247,6 +247,14 @@ mixer_tick(void)
 		mixed = mixer_group.mix(&outputs[0], PX4IO_SERVO_COUNT, &r_mixer_limits);
 		in_mixer = false;
 
+	// //从这里真的可以控制pwm在解锁后输出的最小值！！！
+	// if(true){
+	// 	r_page_servo_control_min[0]=1100;
+	// 	r_page_servo_control_min[1]=1200;
+	// 	r_page_servo_control_min[2]=1300;
+	// 	r_page_servo_control_min[3]=1400;
+	// }
+
 		/* the pwm limit call takes care of out of band errors */
 		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
 			       r_page_servo_control_min, r_page_servo_control_max, outputs, r_page_servos, &pwm_limit);
