@@ -733,7 +733,10 @@ bool handle_command(struct vehicle_status_s *status_local, const struct safety_s
 			// Transition the arming state
 			bool cmd_arm = base_mode & VEHICLE_MODE_FLAG_SAFETY_ARMED;
 
-			arming_ret = arm_disarm(cmd_arm, &mavlink_log_pub, "set mode command");
+			//我在telem2.c中进行模式切换　处理的不合适　在模式切换的时候会进行自动的上锁或解锁
+			//实际中肯定不能在切换模式的时候自动解锁或者上锁，上锁解锁的操作应该只由摇杆进行
+			//跟踪原因是因为在这里会根据切换模式的参数进行解锁或者上锁，这里屏蔽了　即切换模式的时候不会在解锁上锁了
+			//arming_ret = arm_disarm(cmd_arm, &mavlink_log_pub, "set mode command");
 
 			/* update home position on arming if at least 500 ms from commander start spent to avoid setting home on in-air restart */
 			if (cmd_arm && (arming_ret == TRANSITION_CHANGED) &&
@@ -1831,31 +1834,47 @@ int commander_thread_main(int argc, char *argv[])
 			}
 		}
 
-		//全局搜索AUX用作GPIO输出高低电平
-		//把AUX1-4用作GPIO 通过下面语句输出高低电平
-		//借助普通pixhawk的AUX1-4 用作GPIO端口 输出高低电平
-		static bool once=true;
-		if(once){
-			once=false;
-			warnx("--------------------------------------------");
-			//GPIO的读写可以参考 px4fmu2_led.c中的实现
-			//因为我这里使用的是aux的引脚 所以需要屏蔽fmu.cpp对其的初始化和输出
-			stm32_gpiowrite(GPIO_AUX4,1);
-			stm32_gpiowrite(GPIO_AUX3,0);
-			stm32_gpiowrite(GPIO_AUX2,1);
-			stm32_gpiowrite(GPIO_AUX1,0);
-		}
-
-
-
-
-		
+	
 
 		orb_check(sp_man_sub, &updated);
 
 		if (updated) {
 			orb_copy(ORB_ID(manual_control_setpoint), sp_man_sub, &sp_man);
 		}
+
+
+		//下面代码根据遥控器通道[6][7][9]控制GPIO的输出
+
+		//全局搜索AUX用作GPIO输出高低电平
+		//把AUX1-4用作GPIO 通过下面语句输出高低电平
+		//借助普通pixhawk的AUX1-4 用作GPIO端口 输出高低电平
+
+		
+		//已经测试　接收数据ok
+		//[6][7]按下的时候一直输出１,[9]中间位置为15,右边为0，左边为30
+        // warnx("6=%d",sp_man.channel[6]);
+        // warnx("7=%d",sp_man.channel[7]);
+        // warnx("9=%d",sp_man.channel[9]);
+		if(sp_man.channel[6]==0){
+			stm32_gpiowrite(GPIO_AUX1,1);
+		}else{
+			stm32_gpiowrite(GPIO_AUX1,0);
+		}
+
+		if(sp_man.channel[6]==0){
+			stm32_gpiowrite(GPIO_AUX2,1);
+		}else{
+			stm32_gpiowrite(GPIO_AUX2,0);
+		}
+
+		if(sp_man.channel[6]>10 && sp_man.channel[6]<20){
+			stm32_gpiowrite(GPIO_AUX3,1);
+		}else{
+			stm32_gpiowrite(GPIO_AUX3,0);
+		}
+
+
+
 
 		orb_check(offboard_control_mode_sub, &updated);
 

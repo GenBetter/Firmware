@@ -675,6 +675,9 @@ MavlinkReceiver::handle_message_set_mode(mavlink_message_t *msg)
 	vcmd.source_system = msg->sysid;
 	vcmd.source_component = msg->compid;
 	vcmd.confirmation = 1;
+	// warnx("1=%2.2f",(double)vcmd.param1);
+	// warnx("2=%2.2f",(double)vcmd.param2);
+	// warnx("3=%2.2f",(double)vcmd.param3);
 
 	if (_cmd_pub == nullptr) {
 		_cmd_pub = orb_advertise_queue(ORB_ID(vehicle_command), &vcmd, vehicle_command_s::ORB_QUEUE_LENGTH);

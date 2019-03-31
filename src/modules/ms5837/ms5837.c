@@ -205,6 +205,7 @@ int ms5837_app_main(int argc, char *argv[])
                     temp[i]=data;
                 }
                 temper = atof(temp);
+                temper=temper;
                 //warnx("%2.4f",(double)temper);
 
             }
@@ -219,6 +220,7 @@ int ms5837_app_main(int argc, char *argv[])
                     }
                 }
                 deep=atof(depth);
+                deep=deep;
                // warnx("%3.4f",(double)deep);
             }
 

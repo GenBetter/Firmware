@@ -240,19 +240,55 @@ mixer_tick(void)
 			mixer_group.set_max_delta_out_once(delta_out_max);
 		}
 
-		/* mix */
+		//混控计算过程三   （可全局搜索混控计算过程）
+
+		//下面这段代码很重要，mixer的解析与计算过程，对于pixracer这些功能在fmu.cpp里面实现
+		
+		//循环执行计算pwm
+		//r_rc_values[]数组在px4io.h中定义，里面[0][1][2][3]这些放的是遥控器通道0 1 2 3的数据		
 
 		/* poor mans mutex */
+		//注意我们平时所说的mix的过程实际计算在下面的“mix”里，outputs[]数据已经是每个pwm mix计算完成后的结果，就是outputs[]里面放的好几个”S“已经融合完成，就是outputs[]里面放的是“O”
+
 		in_mixer = true;
 		mixed = mixer_group.mix(&outputs[0], PX4IO_SERVO_COUNT, &r_mixer_limits);
 		in_mixer = false;
 
-	// //从这里真的可以控制pwm在解锁后输出的最小值！！！
-	// if(true){
-	// 	r_page_servo_control_min[0]=1100;
-	// 	r_page_servo_control_min[1]=1200;
-	// 	r_page_servo_control_min[2]=1300;
-	// 	r_page_servo_control_min[3]=1400;
+
+	// if(outputs[7]<0.1f){ //限制PWM输出范围是1000-1500
+	// 	r_page_servo_control_min[0]=1000;
+	// 	r_page_servo_control_min[1]=1000;
+	// 	r_page_servo_control_min[2]=1000;
+	// 	r_page_servo_control_min[3]=1000;
+	// 	r_page_servo_control_max[0]=1500;
+	// 	r_page_servo_control_max[1]=1500;
+	// 	r_page_servo_control_max[2]=1500;
+	// 	r_page_servo_control_max[3]=1500;
+	// }
+	// else if(outputs[7]>0.9f)//限制PWM输出为1000-2000,水下既正转也反转
+	// {
+	// 	r_page_servo_control_min[0]=1000;
+	// 	r_page_servo_control_min[1]=1000;
+	// 	r_page_servo_control_min[2]=1000;
+	// 	r_page_servo_control_min[3]=1000;
+	// 	r_page_servo_control_max[0]=2000;
+	// 	r_page_servo_control_max[1]=2000;
+	// 	r_page_servo_control_max[2]=2000;
+	// 	r_page_servo_control_max[3]=2000;
+	// }
+	// else if((outputs[7]>0.4f)&&(outputs[7]<0.6f))
+	// {
+	// 	r_page_servo_control_min[0]=1500;
+	// 	r_page_servo_control_min[1]=1500;
+	// 	r_page_servo_control_min[2]=1500;
+	// 	r_page_servo_control_min[3]=1500;
+	// 	r_page_servo_control_max[0]=1500;
+	// 	r_page_servo_control_max[1]=1500;
+	// 	r_page_servo_control_max[2]=1500;
+	// 	r_page_servo_control_max[3]=1500;
+	// }
+	// else{
+
 	// }
 
 		/* the pwm limit call takes care of out of band errors */
