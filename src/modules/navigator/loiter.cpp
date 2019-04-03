@@ -56,6 +56,19 @@
 #include "loiter.h"
 #include "navigator.h"
 
+
+//本文件一共有７个函数，一个构造函数　一个析构函数，三个函数：不运行的函数　　初始化的函数　　循环运行的函数
+//还有两个函数拿位置的函数：set_loiter_position()和reposition()函数。
+
+//需要掌握的函数只有四个:on_activation()  on_active()  reposition();   set_loiter_position();
+//前两个函数调用后面两个函数，
+
+//set_loiter_position()  //只在on_activation()函数中调用，当其他模式切换到hold模式时 初始化一次：设置悬停点，在当前位置悬停
+//reposition()  	//指点飞行，飞机飞往所指的curr点 到点后保持悬停
+//所有期望飞行的位置　期望飞行的航点都是通过position_setpoint_triple这个主题发布出去的，应该是传递到位置控制中的auto中。
+//只是在两种处理中　一种是保留原来的current意思在当前位置保持悬停，一种把reposition内容复制给current意思是指点飞行，那么这种情况下reposition内容哪来的？函数中有说明
+
+
 Loiter::Loiter(Navigator *navigator, const char *name) :
 	MissionBlock(navigator, name),
 	_param_min_alt(this, "MIS_LTRMIN_ALT", false),
@@ -72,7 +85,7 @@ Loiter::~Loiter()
 void
 Loiter::on_inactive()
 {
-	_loiter_pos_set = false;
+	_loiter_pos_set = false;//这个标志位代表是不是第一次切换进ｈｏｌｄ模式，还是已经在ｈｏｌｄ模式下又重复切换ｈｏｌｄ
 }
 
 
@@ -80,17 +93,17 @@ Loiter::on_inactive()
 //on_activation()第一次切换进hold模式，只运行一次初始化悬停点
 //gazebo下仿真测得出两种进入loiter模式的方式：
 //由其他模式直接切入到hold模式 进入下面的set_loiter_position()飞机在当前位置保持悬停
-//QGC上指点飞行confirm后 其实是切入hold模式，这种切入hold进入下面的set_loiter_position()，飞机飞往所指的curr点 到点后保持悬停
+//QGC上指点飞行confirm后 其实是切入hold模式，飞机飞往所指的rep->curr点 到点后保持悬停
 void
 Loiter::on_activation()
 {
-	//QGC上指点飞行confirm后 其实是切入hold模式，这种切入hold进入下面的set_loiter_position()，飞机飞往所指的curr点 到点后保持悬停
+	//QGC上指点飞行confirm后 其实是切入hold模式，进入reposition()　飞机飞往所指的rep->curr点 到点后保持悬停
 	if (_navigator->get_reposition_triplet()->current.valid) {
 		//warnx("on_activation中指点飞行");
 		reposition(); 
 
 	} 
-	//由其他模式直接切入到hold模式 进入下面的set_loiter_position()飞机在当前位置保持悬停
+	//由其他模式　模式切换切入到hold模式 进入下面的set_loiter_position()　飞机在当前位置_mission_item　保持悬停
 	else {
 		//warnx("on_activation中在当前位置悬停");
 		set_loiter_position();
@@ -108,8 +121,9 @@ void
 Loiter::on_active()
 {
 	//飞机目前已经在hold模式下 这时候QGC的指点飞行还是进入下面reposition(),飞机飞往指点curr 到点后保持悬停
+	//一次指点只会执行发布一次，不会重复发布　因为在执行reposition()函数的最后　memset(rep, 0, sizeof(*rep));
 	if (_navigator->get_reposition_triplet()->current.valid) {
-		//warnx("on_active中指点飞行");
+		//指点有效　把所指的点rep->curr用过pos_sp_triple传递给位置控制
 		reposition();
 	}
 
@@ -131,8 +145,8 @@ Loiter::set_loiter_position()  //只在on_activation()函数中调用，在其�
 	if (_navigator->get_vstatus()->arming_state != vehicle_status_s::ARMING_STATE_ARMED ||
 	    _loiter_pos_set) {
 		return; //当飞机没有解锁的时候 切换到hold模式，直接return没有设置悬停位置 也没有通知位置控制，简单来说 既然还在上锁呢 白切
-		        //当飞机已经解锁  切换到hold模式，如果是第一次进来设置_loiter_pos_set = true并设置悬停位置 通知位置控制
-				//目前我看_loiter_pos_set标志位是为了防止set_loiter_position()在切入hold时重复set_loiter_position设置悬停点，但是其实这个函数在on_activation()函数里本身就只会执行一次，所以我看这个标志位是多余的
+		        //当飞机已经解锁  切换到hold模式，如果是第一次进来设置_loiter_pos_set = true并设置悬停位置 通知位置控制，如果是已经在ｈｏｌｄ模式下了再重复切入ｈｏｌｄ
+				//目前我看_loiter_pos_set标志位是为了防止set_loiter_position()在切入hold时重复set_loiter_position设置悬停点，on_activation()函数里本身只会执行一次
 
 	} 
 	else //解锁状态 切换到hold 第一次进来
@@ -142,6 +156,7 @@ Loiter::set_loiter_position()  //只在on_activation()函数中调用，在其�
 
 	//设置悬停点
 	// set current mission item to loiter
+	//设置最小的悬停高度
 	set_loiter_item(&_mission_item, _param_min_alt.get());
 
 	// convert mission item to current setpoint
@@ -164,14 +179,13 @@ Loiter::reposition()  	//指点飞行，飞机飞往所指的curr点 到点后�
 		return;
 	}
 
-	//获取指点飞行的航点信息rep
+	//获取指点飞行的航点信息rep，rep来源与哪？
 	struct position_setpoint_triplet_s *rep = _navigator->get_reposition_triplet();
 
-	//航点信息有效
+	//rep有效
 	if (rep->current.valid) { 
 		// set loiter position based on reposition command
-		// convert mission item to current setpoint
-		//获取航点储存的空间
+		//把repositon赋值给pos_sp_triplet,通过pos_sp_triplet传递给位置控制
 		struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 		pos_sp_triplet->current.velocity_valid = false;
 		//当前位置设置为previous
@@ -179,7 +193,7 @@ Loiter::reposition()  	//指点飞行，飞机飞往所指的curr点 到点后�
 		pos_sp_triplet->previous.lat = _navigator->get_global_position()->lat;
 		pos_sp_triplet->previous.lon = _navigator->get_global_position()->lon;
 		pos_sp_triplet->previous.alt = _navigator->get_global_position()->alt;
-		//指点的位置设置为current
+		//把repositon赋值给pos_sp_triplet,通过pos_sp_triplet传递给位置控制
 		memcpy(&pos_sp_triplet->current, &rep->current, sizeof(rep->current));
 		pos_sp_triplet->next.valid = false;
 
@@ -199,13 +213,13 @@ Loiter::reposition()  	//指点飞行，飞机飞往所指的curr点 到点后�
 							      pos_sp_triplet->current.lon);
 		}
 
-		//能否在目标点悬停
+		//能否在目标点悬停，关注下rep的current.type是什么类型
 		_navigator->set_can_loiter_at_sp(pos_sp_triplet->current.type == position_setpoint_s::SETPOINT_TYPE_LOITER);
 
 		//通知位置控制结构体更新
 		_navigator->set_position_setpoint_triplet_updated();
 
-		// 清空rep结构体，防止rep重复执行多次
+		// 清空rep结构体，防止rep重复执行多次，一个指点　只会通知位置控制一次　不会重复通知
 		memset(rep, 0, sizeof(*rep));
 	}
 }
