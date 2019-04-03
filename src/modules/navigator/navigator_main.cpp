@@ -424,8 +424,10 @@ Navigator::task_main()
 			vehicle_command_s cmd;
 			orb_copy(ORB_ID(vehicle_command), _vehicle_command_sub, &cmd);
 
+			//注意hold模式下的指点飞行数据　是来自与VEHICLE_CMD_DO_REPOSITION命令，是在这个命令下的
 			if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_REPOSITION) {
 
+				//rep   hold模式下指点飞行的数据_reposition_triplet来源
 				struct position_setpoint_triplet_s *rep = get_reposition_triplet();
 
 				// store current position as previous position and goal as next
@@ -436,24 +438,27 @@ Navigator::task_main()
 
 				rep->current.loiter_radius = get_loiter_radius();
 				rep->current.loiter_direction = 1;
+				//注意current.type赋值为了SETPOINT_TYPE_LOITER，这就是hold.cpp中的到点保持悬停
 				rep->current.type = position_setpoint_s::SETPOINT_TYPE_LOITER;
 
 				// Go on and check which changes had been requested
+				//参数４传递偏航
 				if (PX4_ISFINITE(cmd.param4)) {
 					rep->current.yaw = cmd.param4;
 				} else {
 					rep->current.yaw = NAN;
 				}
-
+				//参数５，６传递经度　纬度
 				if (PX4_ISFINITE(cmd.param5) && PX4_ISFINITE(cmd.param6)) {
 					rep->current.lat = (cmd.param5 < 1000) ? cmd.param5 : cmd.param5 / (double)1e7;
 					rep->current.lon = (cmd.param6 < 1000) ? cmd.param6 : cmd.param6 / (double)1e7;
 
 				} else {
+				//如果参数无效　就在当前位置保持悬停
 					rep->current.lat = get_global_position()->lat;
 					rep->current.lon = get_global_position()->lon;
 				}
-
+				//参数７传递高度　高度无效就在当前高度悬停
 				if (PX4_ISFINITE(cmd.param7)) {
 					rep->current.alt = cmd.param7;
 				} else {
@@ -461,8 +466,11 @@ Navigator::task_main()
 				}
 
 				rep->previous.valid = true;
+				//指点有效
 				rep->current.valid = true;
 				rep->next.valid = false;
+				//rep的数据会直接传递到hold.cpp中进行使用，可以跟踪到hold.cpp中进行跟踪数据的使用。当然还需要地面站或者用户配合切换到ｈｏｌｄ模式
+				
 			} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_NAV_TAKEOFF) {
 				struct position_setpoint_triplet_s *rep = get_takeoff_triplet();
 

@@ -122,6 +122,7 @@ Loiter::on_active()
 {
 	//飞机目前已经在hold模式下 这时候QGC的指点飞行还是进入下面reposition(),飞机飞往指点curr 到点后保持悬停
 	//一次指点只会执行发布一次，不会重复发布　因为在执行reposition()函数的最后　memset(rep, 0, sizeof(*rep));
+	//rep来源于哪？rep来源navigator_main.cpp中的VEHICLE_CMD_DO_REPOSITIO命令下的参数
 	if (_navigator->get_reposition_triplet()->current.valid) {
 		//指点有效　把所指的点rep->curr用过pos_sp_triple传递给位置控制
 		reposition();
