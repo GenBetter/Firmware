@@ -425,6 +425,17 @@ Navigator::task_main()
 			orb_copy(ORB_ID(vehicle_command), _vehicle_command_sub, &cmd);
 
 			//注意hold模式下的指点飞行数据　是来自与VEHICLE_CMD_DO_REPOSITION命令，是在这个命令下的
+			//VEHICLE_CMD_DO_REPOSITION这个命令来源于哪?来源与mavlink_receiver.cpp三种命令的COMMAND_LONG COMMNAD_INT SET_MODE
+			//SET_MODE下参数４５６７没有填充　参数１２３有值　只是用来切换模式，说明与我们指点飞行无关
+			//确认来源与COMMAND_LONG COMMNAD_INT，去了解这两条mavlink协议75 76两条协议
+			//https://mavlink.io/en/messages/common.html
+			//地面站通过COMMAND_INT COMMAND_LON两条命令传递指点飞行的数据，两条命令传递的区别在于经度维度数据　一个表示成整形　一个表示成float，不过飞控段会自动将接收的数据转化成真实的flaoｔ经度维度数据
+			//传输的参数
+			//command=DO_REPOSITION
+			//参数４为偏航
+			//参数５６７经度纬度高度
+			//不同指令command下的参数的不同含义　vehicle_command.msg已经给出大部分说明，可以去学习
+
 			if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_REPOSITION) {
 
 				//rep   hold模式下指点飞行的数据_reposition_triplet来源
@@ -450,6 +461,7 @@ Navigator::task_main()
 				}
 				//参数５，６传递经度　纬度
 				if (PX4_ISFINITE(cmd.param5) && PX4_ISFINITE(cmd.param6)) {
+					//地面站仿真实测　地面站传递的参数是float类型的真实的经度维度，不需要除以1e7
 					rep->current.lat = (cmd.param5 < 1000) ? cmd.param5 : cmd.param5 / (double)1e7;
 					rep->current.lon = (cmd.param6 < 1000) ? cmd.param6 : cmd.param6 / (double)1e7;
 
@@ -460,6 +472,7 @@ Navigator::task_main()
 				}
 				//参数７传递高度　高度无效就在当前高度悬停
 				if (PX4_ISFINITE(cmd.param7)) {
+					//地面站仿真实测　地面站传递的高度参数是float类型的海拔高度
 					rep->current.alt = cmd.param7;
 				} else {
 					rep->current.alt = get_global_position()->alt;
