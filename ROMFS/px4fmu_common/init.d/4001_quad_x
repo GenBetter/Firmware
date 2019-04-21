@@ -15,4 +15,5 @@ sh /etc/init.d/rc.mc_defaults
 
 set MIXER quad_x
 
-set PWM_OUT 1234
+#在这修改脚本 实现主通道5678输出400hz用于旋翼,主通道12输出400hz用于电机 主通道34输出50hz用于舵机
+set PWM_OUT 125678
