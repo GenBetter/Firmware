@@ -1024,10 +1024,10 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
 
-					_actuators.control[4] =0.0f;
-					_actuators.control[5] =0.0f;
-					_actuators.control[6] =0.1f;
-					_actuators.control[7] =0.1f;//限制PWM输出范围是1000-1500
+					_actuators.control[4] =0.0f;//是泵喷电机的控制
+					_actuators.control[5] =0.0f;//PWM范围的控制
+					_actuators.control[6] =0.1f;//舵机
+					_actuators.control[7] =0.1f;//舵机
 				}
 				else if(_manual_control_sp.gear_switch==2) //定高模式　空中定高正常控制
 				{
@@ -1037,7 +1037,7 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
 					
-					_actuators.control[4] =0.0f;
+					_actuators.control[4] =0.0f;//是泵喷电机的控制
 					_actuators.control[5] =0.0f;
 					_actuators.control[6] =0.2f;
 					_actuators.control[7] =0.2f;//限制PWM输出范围是1000-1500

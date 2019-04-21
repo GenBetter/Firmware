@@ -278,14 +278,14 @@ mixer_tick(void)
 	// }
 	// else if((outputs[7]>0.4f)&&(outputs[7]<0.6f))
 	// {
-	// 	r_page_servo_control_min[0]=1500;
-	// 	r_page_servo_control_min[1]=1500;
-	// 	r_page_servo_control_min[2]=1500;
-	// 	r_page_servo_control_min[3]=1500;
-	// 	r_page_servo_control_max[0]=1500;
-	// 	r_page_servo_control_max[1]=1500;
-	// 	r_page_servo_control_max[2]=1500;
-	// 	r_page_servo_control_max[3]=1500;
+		r_page_servo_control_min[4]=1100;
+		r_page_servo_control_min[5]=1200;
+		r_page_servo_control_min[6]=1500;
+		r_page_servo_control_min[7]=1500;
+		r_page_servo_control_max[4]=1100;
+		r_page_servo_control_max[5]=1200;
+		r_page_servo_control_max[6]=1500;
+		r_page_servo_control_max[7]=1500;
 	// }
 	// else{
 
