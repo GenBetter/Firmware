@@ -255,45 +255,30 @@ mixer_tick(void)
 		in_mixer = false;
 
 
-	// if(outputs[7]<0.1f){ //限制PWM输出范围是1000-1500
-	// 	r_page_servo_control_min[0]=1000;
-	// 	r_page_servo_control_min[1]=1000;
-	// 	r_page_servo_control_min[2]=1000;
-	// 	r_page_servo_control_min[3]=1000;
-	// 	r_page_servo_control_max[0]=1500;
-	// 	r_page_servo_control_max[1]=1500;
-	// 	r_page_servo_control_max[2]=1500;
-	// 	r_page_servo_control_max[3]=1500;
-	// }
-	// else if(outputs[7]>0.9f)//限制PWM输出为1000-2000,水下既正转也反转
-	// {
-	// 	r_page_servo_control_min[0]=1000;
-	// 	r_page_servo_control_min[1]=1000;
-	// 	r_page_servo_control_min[2]=1000;
-	// 	r_page_servo_control_min[3]=1000;
-	// 	r_page_servo_control_max[0]=2000;
-	// 	r_page_servo_control_max[1]=2000;
-	// 	r_page_servo_control_max[2]=2000;
-	// 	r_page_servo_control_max[3]=2000;
-	// }
-	// else if((outputs[7]>0.4f)&&(outputs[7]<0.6f))
-	// {
-		r_page_servo_control_min[4]=1100;
-		r_page_servo_control_min[5]=1200;
-		r_page_servo_control_min[6]=1500;
-		r_page_servo_control_min[7]=1500;
-		r_page_servo_control_max[4]=1100;
-		r_page_servo_control_max[5]=1200;
-		r_page_servo_control_max[6]=1500;
-		r_page_servo_control_max[7]=1500;
-	// }
-	// else{
 
-	// }
+	if(outputs[0]<0.5f){ //限制PWM输出范围是1000-1500
+		uint16_t	pwm_max1[PX4IO_SERVO_COUNT] = { 2000, 2000, 2000, 2000, 1500, 1500, 1500, 1500 };
+		
+		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
+			       r_page_servo_control_min, pwm_max1, outputs, r_page_servos, &pwm_limit);
+	}
+	else if(outputs[0]>0.7f)//限制PWM输出为1000-2000,水下既正转也反转
+	{
+		uint16_t	pwm_max2[PX4IO_SERVO_COUNT] = { 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000 };
+		
+		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
+			       r_page_servo_control_min, pwm_max2, outputs, r_page_servos, &pwm_limit);
+	}else{
 
-		/* the pwm limit call takes care of out of band errors */
 		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
 			       r_page_servo_control_min, r_page_servo_control_max, outputs, r_page_servos, &pwm_limit);
+
+	}
+
+
+		// /* the pwm limit call takes care of out of band errors */
+		// pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
+		// 	       r_page_servo_control_min, r_page_servo_control_max, outputs, r_page_servos, &pwm_limit);
 
 		/* clamp unused outputs to zero */
 		for (unsigned i = mixed; i < PX4IO_SERVO_COUNT; i++) {

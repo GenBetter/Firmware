@@ -1008,64 +1008,75 @@ MulticopterAttitudeControl::task_main()
                 //  水下（mode=8）    水面（mode=4）
 
 
+				//这是控制量 注意区分这里的控制量和pwm输出通道 是通过混控脚本映射关系的。
 				// MAIN 1234 四旋翼四个电机
-				// MAIN 5    泵喷速度电机
-				// MAIN 6    泵喷左右舵机
-				// MAIN 7    泵喷上下舵机
-				// MAIN 8    用于PWM范围修改，PWM的输出范围　1000-1500正转　　1500-2000反转
+				// MAIN 5    用于PWM范围调节，PWM的输出范围　1000-1500正转　　1500-2000反转
+				// MAIN 6    泵喷电机
+				// MAIN 7    泵喷左右舵机
+				// MAIN 8    泵喷上下舵机
 				//当飞机处于空中的时候　PWM的范围应该是1000-1500,当飞机处于水面的时候　PWM限制900不转电机
 				//当飞机处于水下的时候　PWM范围应该是1000-2000
 
 				if(_manual_control_sp.gear_switch==1)//手动模式　空中四旋翼正常控制
 				{
-					warnx("1");
+					//warnx("1");
 					_actuators.control[0] = (PX4_ISFINITE(_att_control(0))) ? _att_control(0) : 0.0f;
 					_actuators.control[1] = (PX4_ISFINITE(_att_control(1))) ? _att_control(1) : 0.0f;
 					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
 
-					_actuators.control[4] =0.0f;//是泵喷电机的控制
-					_actuators.control[5] =0.0f;//PWM范围的控制
-					_actuators.control[6] =0.1f;//舵机
-					_actuators.control[7] =0.1f;//舵机
+					_actuators.control[0] = math::constrain(_actuators.control[0], -0.2f, 0.2f);
+					_actuators.control[1] = math::constrain(_actuators.control[1], -0.2f, 0.2f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.2f, 0.2f);
+					
+
+					_actuators.control[4] =0.1f;//PWM范围的控制
+
 				}
 				else if(_manual_control_sp.gear_switch==2) //定高模式　空中定高正常控制
 				{
-					warnx("2");
+					// warnx("2");
 					_actuators.control[0] = (PX4_ISFINITE(_att_control(0))) ? _att_control(0) : 0.0f;
 					_actuators.control[1] = (PX4_ISFINITE(_att_control(1))) ? _att_control(1) : 0.0f;
 					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
+
+					_actuators.control[0] = math::constrain(_actuators.control[0], -0.2f, 0.2f);
+					_actuators.control[1] = math::constrain(_actuators.control[1], -0.2f, 0.2f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.2f, 0.2f);
 					
-					_actuators.control[4] =0.0f;//是泵喷电机的控制
-					_actuators.control[5] =0.0f;
-					_actuators.control[6] =0.2f;
-					_actuators.control[7] =0.2f;//限制PWM输出范围是1000-1500
+					_actuators.control[4] =0.2f;//PWM范围的控制
+					
+
 				}
 				else if(_manual_control_sp.gear_switch==4)//水面模式　控制泵喷速度　和左右舵机
 				{
-					warnx("4");
+					// warnx("4");
 					_actuators.control[0] = 0.0f; //水面模式　telem2.c中切换到手动模式下吗，现在还在定高模式呢，先在定高模式下看看效果吧
 					_actuators.control[1] = 0.0f;
 					_actuators.control[2] = 0.0f;
 					_actuators.control[3] = 0.0f;
 
-					_actuators.control[4] = _manual_control_sp.z;//油门直通控制泵喷速度 范围[0,1]
-					_actuators.control[5] = _manual_control_sp.r;//偏航直通　控制左右舵机摆动 范围[-1,1]
-					_actuators.control[6] =0.5f;
-					_actuators.control[7] =0.5f;//限制PWM输出为1500,既不正转也不反转
+					_actuators.control[4] =0.4f;//PWM范围的控制
+					
+		
+
+					// _actuators.control[4] = _manual_control_sp.z;//油门直通控制泵喷速度 范围[0,1]
+					// _actuators.control[5] = _manual_control_sp.r;//偏航直通　控制左右舵机摆动 范围[-1,1]
+					// _actuators.control[6] =0.5f;
+					// _actuators.control[7] =0.5f;//限制PWM输出为1500,既不正转也不反转
 				}
 				else if(_manual_control_sp.gear_switch==8)////水下模式　控制泵喷速度　左右舵机　上下舵机　以及四旋翼正反转　此时处于定高模式
 				{
-					warnx("8");
-					_actuators.control[0] = (PX4_ISFINITE(_att_control(0))) ? _att_control(0) : 0.0f;
-					_actuators.control[1] = (PX4_ISFINITE(_att_control(1))) ? _att_control(1) : 0.0f;
-					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
-					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
-					//未写完
+					// warnx("8");
+					_actuators.control[0] = 0.0f;
+					_actuators.control[1] = 0.0f;
+					_actuators.control[2] = 0.0f;
+					_actuators.control[3] = _manual_control_sp.z;
 
-					_actuators.control[6] =1.0f;
-					_actuators.control[7] =1.0f;//限制PWM输出为1000-2000,水下既正转也反转
+					_actuators.control[4] =0.8f;//PWM范围的控制
+					
+
 					
 				}
 				else{

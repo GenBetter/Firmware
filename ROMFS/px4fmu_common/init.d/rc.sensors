@@ -37,7 +37,8 @@ else
 
 
 		# MS5611_BUS_I2C_EXTERNAL
-		if ms5611 -X start
+		#if ms5611 -X start
+		if ms5611 start
 		then
 			echo "ms5611 external iic start successful"
 		else
