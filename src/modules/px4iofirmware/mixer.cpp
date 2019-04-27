@@ -248,7 +248,7 @@ mixer_tick(void)
 		in_mixer = false;
 
 		uint16_t flag=0;
-		if(outputs[7]>0.9f){
+		if(outputs[4]>0.6f){
 
 			flag=1;
 			
@@ -258,7 +258,7 @@ mixer_tick(void)
 			       r_page_servo_control_min1, r_page_servo_control_max1, outputs, r_page_servos, &pwm_limit,flag);
 
 			
-		}else if(outputs[7]<0.1f)
+		}else if(outputs[4]<0.6f)
 		{
 			// r_page_servo_control_min[0]=1400;
 			// r_page_servo_control_min[1]=1400;
