@@ -56,10 +56,26 @@ void pwm_limit_init(pwm_limit_t *limit)
 }
 
 void pwm_limit_calc(const bool armed, const bool pre_armed, const unsigned num_channels, const uint16_t reverse_mask,
-		    const uint16_t *disarmed_pwm, const uint16_t *min_pwm, const uint16_t *max_pwm,
-		    const float *output, uint16_t *effective_pwm, pwm_limit_t *limit)
+		    const uint16_t *disarmed_pwm,  uint16_t *min_pwm,  uint16_t *max_pwm,
+		    const float *output, uint16_t *effective_pwm, pwm_limit_t *limit,uint16_t flag)
 {
 
+// if(flag==2){
+// 	min_pwm[0]=1500;
+// 	min_pwm[1]=1600;
+// 	min_pwm[2]=1700;
+// 	min_pwm[3]=1800;
+// }
+
+// if(flag==1){
+// 	min_pwm[0]=1100;
+// 	min_pwm[1]=1200;
+// 	min_pwm[2]=1300;
+// 	min_pwm[3]=1400;
+// }
+// else{
+
+// }
 	/* first evaluate state changes */
 	switch (limit->state) {
 	case PWM_LIMIT_STATE_INIT:

@@ -247,9 +247,37 @@ mixer_tick(void)
 		mixed = mixer_group.mix(&outputs[0], PX4IO_SERVO_COUNT, &r_mixer_limits);
 		in_mixer = false;
 
-		/* the pwm limit call takes care of out of band errors */
+		uint16_t flag=0;
+		if(outputs[7]>0.9f){
+
+			flag=1;
+			
+		uint16_t r_page_servo_control_min1[PX4IO_SERVO_COUNT] = { 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300 };
+		uint16_t r_page_servo_control_max1[PX4IO_SERVO_COUNT] = { 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300 };
 		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
-			       r_page_servo_control_min, r_page_servo_control_max, outputs, r_page_servos, &pwm_limit);
+			       r_page_servo_control_min1, r_page_servo_control_max1, outputs, r_page_servos, &pwm_limit,flag);
+
+			
+		}else if(outputs[7]<0.1f)
+		{
+			// r_page_servo_control_min[0]=1400;
+			// r_page_servo_control_min[1]=1400;
+			// r_page_servo_control_min[2]=1400;
+			// r_page_servo_control_min[3]=1400;
+			flag=2;
+
+		uint16_t r_page_servo_control_min2[PX4IO_SERVO_COUNT] = { 1600, 1600, 1600, 1600, 1600, 1600, 1600, 1600 };
+		uint16_t r_page_servo_control_max2[PX4IO_SERVO_COUNT] = { 1600, 1600, 1600, 1600, 1600, 1600, 1600, 1600 };
+		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
+			       r_page_servo_control_min2, r_page_servo_control_max2, outputs, r_page_servos, &pwm_limit,flag);
+		}else{
+			flag=0;
+					/* the pwm limit call takes care of out of band errors */
+		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
+			       r_page_servo_control_min, r_page_servo_control_max, outputs, r_page_servos, &pwm_limit,flag);
+		}
+
+
 
 		/* clamp unused outputs to zero */
 		for (unsigned i = mixed; i < PX4IO_SERVO_COUNT; i++) {
