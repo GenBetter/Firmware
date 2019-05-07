@@ -91,8 +91,17 @@ int uart_net_thread(int argc, char *argv[])
         }
 
         orb_copy(ORB_ID(vehicle_status), vehicle_status_sub, &_status);
+       
+       // printf("nav_state = %d\n",_status.nav_state);
+       //选择一种模式触发offboard 选择land模式下触发offboard,这样offboard结束后可以直接返回到land模式执行降落
+        if(_status.nav_state==18)// NAVIGATION_STATE_AUTO_LAND = 18;;NAVIGATION_STATE_POSCTL=2定点模式 从定点模式切进offboard
+        {
+            break;
+        }
+        else{
 
-        break;
+        }
+        
     }
     mavlink_log_critical(&mavlink_log_pub, "vehicle_status_s getted!");
     //这里表示获取成功了
@@ -119,7 +128,7 @@ int uart_net_thread(int argc, char *argv[])
     _pos_sp_triplet.current.position_valid = true;//这里我们只控制位置,不控制速度、yaw角和加速度 所以只需要开启这个标识位
     _pos_sp_triplet.current.x = 0.0f;
     _pos_sp_triplet.current.y = 0.0f;
-    _pos_sp_triplet.current.z = -3.0f;//一开始我们飞到home点上方3米高空悬停
+    _pos_sp_triplet.current.z = -1.5f;//一开始我们飞到home点上方3米高空悬停
     _pos_sp_triplet.current.type = position_setpoint_s::SETPOINT_TYPE_POSITION;
     //要移动飞机，这个type必须是position_setpoint_s::SETPOINT_TYPE_POSITION，其他还有这些type
 //    if (is_takeoff_sp) {
@@ -240,15 +249,15 @@ int uart_net_thread(int argc, char *argv[])
     {
         if(sended == 0)//第一步，解锁 （arm）
         {
-            _command.command = vehicle_command_s::VEHICLE_CMD_COMPONENT_ARM_DISARM;//发送指令arm
-            _command.param1 = 1.0f;//1.0为解锁 0.0为加锁
-            if (vehicle_command_pub != nullptr) {//发布消息
-                orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
-            } else {
-                vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
-            }
+            // _command.command = vehicle_command_s::VEHICLE_CMD_COMPONENT_ARM_DISARM;//发送指令arm
+            // _command.param1 = 1.0f;//1.0为解锁 0.0为加锁
+            // if (vehicle_command_pub != nullptr) {//发布消息
+            //     orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
+            // } else {
+            //     vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
+            // }
 
-            mavlink_log_critical(&mavlink_log_pub, "-- arm ok!");
+            // mavlink_log_critical(&mavlink_log_pub, "-- arm ok!");
             sended++;//进行第二部，这里只是测试代码 我就没有收取命令返回值了 以后做项目的时候记得加上
         }
 
@@ -272,9 +281,9 @@ int uart_net_thread(int argc, char *argv[])
             sended++;
 
             //飞到这个坐标
-            _pos_sp_triplet.current.x=20.0f;
-            _pos_sp_triplet.current.y=20.0f;
-            _pos_sp_triplet.current.z=-10.0f;
+            _pos_sp_triplet.current.x=5.0f;
+            _pos_sp_triplet.current.y=5.0f;
+            _pos_sp_triplet.current.z=-1.5f;
             mavlink_log_critical(&mavlink_log_pub, "-- position -- 1");
             orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
             timetick = hrt_absolute_time();
@@ -284,9 +293,9 @@ int uart_net_thread(int argc, char *argv[])
         {
             sended++;
 
-            _pos_sp_triplet.current.x=20.0f;
-            _pos_sp_triplet.current.y=-20.0f;
-            _pos_sp_triplet.current.z=-10.0f;
+            _pos_sp_triplet.current.x=5.0f;
+            _pos_sp_triplet.current.y=-5.0f;
+            _pos_sp_triplet.current.z=-1.5f;
             mavlink_log_critical(&mavlink_log_pub, "-- position -- 2");
             orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
             timetick = hrt_absolute_time();
@@ -296,21 +305,21 @@ int uart_net_thread(int argc, char *argv[])
         {
             sended++;
 
-            _pos_sp_triplet.current.x=-20.0f;
-            _pos_sp_triplet.current.y=-20.0f;
-            _pos_sp_triplet.current.z=-10.0f;
+            _pos_sp_triplet.current.x=-5.0f;
+            _pos_sp_triplet.current.y=-5.0f;
+            _pos_sp_triplet.current.z=-1.5f;
             mavlink_log_critical(&mavlink_log_pub, "-- position -- 3");
             orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
             timetick = hrt_absolute_time();
         }
-
+/*
         if(sended == 5 && hrt_absolute_time() - timetick > 10000000)//10秒以后进行第四个航点
         {
             sended++;
 
-            _pos_sp_triplet.current.x=-20.0f;
-            _pos_sp_triplet.current.y=20.0f;
-            _pos_sp_triplet.current.z=-10.0f;
+            _pos_sp_triplet.current.x=-5.0f;
+            _pos_sp_triplet.current.y=5.0f;
+            _pos_sp_triplet.current.z=-1.5f;
             mavlink_log_critical(&mavlink_log_pub, "-- position -- 4");
             orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
             timetick = hrt_absolute_time();
@@ -320,9 +329,9 @@ int uart_net_thread(int argc, char *argv[])
         {
             sended++;
 
-            _pos_sp_triplet.current.x=20.0f;
-            _pos_sp_triplet.current.y=20.0f;
-            _pos_sp_triplet.current.z=-10.0f;
+            _pos_sp_triplet.current.x=5.0f;
+            _pos_sp_triplet.current.y=5.0f;
+            _pos_sp_triplet.current.z=-1.5f;
             mavlink_log_critical(&mavlink_log_pub, "-- position -- 5");
             orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
             timetick = hrt_absolute_time();
@@ -334,27 +343,37 @@ int uart_net_thread(int argc, char *argv[])
 
             _pos_sp_triplet.current.x=0.0f;
             _pos_sp_triplet.current.y=0.0f;
-            _pos_sp_triplet.current.z=-10.0f;
+            _pos_sp_triplet.current.z=-1.5f;
             mavlink_log_critical(&mavlink_log_pub, "-- position -- 6");
             orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
             timetick = hrt_absolute_time();
-        }
+        }*/
 
-        if(sended == 8 && hrt_absolute_time() - timetick > 10000000)//再过10秒关闭offboard模式切换到之前的模式
+        if(sended == 5 && hrt_absolute_time() - timetick > 10000000)//再过10秒关闭offboard模式切换到之前的模式
         //这就是为什么我们在起飞之前先设置为position control模式 这里切回之后就是position control mode
         {
             sended++;
 
+            //退出offboard模式
             _command.command = vehicle_command_s::VEHICLE_CMD_NAV_GUIDED_ENABLE;
             _command.param1 = 0.0f;//0.0f表示关闭offboard 1.0f表示开启
 			_command.param2 = 3.0f;//二级模式为position control
             _command.param3 = 0.0f;//三级模式没有！
+
+            //修改原来的退出offboard 改为切换到land模式
+            // _command.param1 = 213;//用参数213会出现一个问题：切换的时候会自动解锁
+            // _command.param2 = 4;
+            // _command.param3 = 6;
+            // _command.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;
+
+
             if (vehicle_command_pub != nullptr) {//发布命令
                 orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
             } else {
                 vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
             }
-            mavlink_log_critical(&mavlink_log_pub, "-- close offboard");
+            mavlink_log_critical(&mavlink_log_pub, "-- switch land mode");
+            
         }
 
         //前面说过了 为了维持offboard模式必须要一个心跳信息最低美秒发布2次offboard_control_mode
