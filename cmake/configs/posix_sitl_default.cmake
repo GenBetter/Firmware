@@ -56,6 +56,7 @@ set(config_module_list
 	modules/systemlib/mixer
 	modules/uORB
 	modules/vtol_att_control
+	modules/uart_net
 
 	lib/controllib
 	lib/conversion

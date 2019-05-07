@@ -709,6 +709,14 @@ Mission::set_mission_items()
 	/* set current position setpoint from mission item (is protected against non-position items) */
 	mission_item_to_position_setpoint(&_mission_item, &pos_sp_triplet->current);
 
+		// warnx("当前航点序号 = %d",_current_offboard_mission_index);
+		// if(_current_offboard_mission_index==0){
+		// 	pos_sp_triplet->current.user_guidance=true;
+		// 	warnx("当前是用户操作的点");
+		// }else{
+		// 	pos_sp_triplet->current.user_guidance=false;
+		// }
+		
 	/* issue command if ready (will do nothing for position mission items) */
 	issue_command(&_mission_item);
 
