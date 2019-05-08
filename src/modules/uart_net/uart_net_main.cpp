@@ -67,7 +67,7 @@ int uart_net_thread(int argc, char *argv[])
         int pret = px4_poll(&fds, 1, 1000);//等待home_position位置
         if (pret <= 0)
         {
-            mavlink_log_critical(&mavlink_log_pub, "recv _home_pos over 1 second,continue!");
+            //mavlink_log_critical(&mavlink_log_pub, "recv _home_pos over 1 second,continue!");
             continue;//如果超时继续获取直到获取成功
         }
 
@@ -75,7 +75,7 @@ int uart_net_thread(int argc, char *argv[])
 
         break;
     }
-    mavlink_log_critical(&mavlink_log_pub, "home pos getted!");//这里表示home点已经获取到了
+   // mavlink_log_critical(&mavlink_log_pub, "home pos getted!");//这里表示home点已经获取到了
 
     //这里开始获取vehicle_status,有vehicle_status_s里面的system_id和component_id才能发送vehicle_command命令飞机
     vehicle_status_s _status;
@@ -86,7 +86,7 @@ int uart_net_thread(int argc, char *argv[])
         int pret = px4_poll(&fds, 1, 1000);
         if (pret <= 0)
         {
-            mavlink_log_critical(&mavlink_log_pub, "recv _status over 1 second,continue!");
+           // mavlink_log_critical(&mavlink_log_pub, "recv _status over 1 second,continue!");
             continue;
         }
 
@@ -103,7 +103,7 @@ int uart_net_thread(int argc, char *argv[])
         }
         
     }
-    mavlink_log_critical(&mavlink_log_pub, "vehicle_status_s getted!");
+    //mavlink_log_critical(&mavlink_log_pub, "vehicle_status_s getted!");
     //这里表示获取成功了
 
     orb_advert_t vehicle_command_pub = nullptr;
@@ -174,7 +174,7 @@ int uart_net_thread(int argc, char *argv[])
             int pret = px4_poll(&fds, 1, 1000);
             if (pret <= 0)
             {
-                mavlink_log_critical(&mavlink_log_pub, "recv _ack over 1 second,continue!");
+               // mavlink_log_critical(&mavlink_log_pub, "recv _ack over 1 second,continue!");
                 continue;
             }
 
@@ -189,10 +189,10 @@ int uart_net_thread(int argc, char *argv[])
         }
 
         //如果没有跳出表示切换失败,循环回去再切换
-        mavlink_log_critical(&mavlink_log_pub, "can't go into posctl mode,continue!");
+        //mavlink_log_critical(&mavlink_log_pub, "can't go into posctl mode,continue!");
         usleep(10000);
     }
-    mavlink_log_critical(&mavlink_log_pub, "land mode ok!");
+   // mavlink_log_critical(&mavlink_log_pub, "land mode ok!");
 	
 	
 
@@ -222,7 +222,7 @@ int uart_net_thread(int argc, char *argv[])
             int pret = px4_poll(&fds, 1, 1000);
             if (pret <= 0)
             {
-                mavlink_log_critical(&mavlink_log_pub, "recv _ack over 1 second,continue!");
+                //mavlink_log_critical(&mavlink_log_pub, "recv _ack over 1 second,continue!");
                 continue;
             }
 
@@ -240,7 +240,7 @@ int uart_net_thread(int argc, char *argv[])
         mavlink_log_critical(&mavlink_log_pub, "can't go into offboard mode,continue!");
         usleep(10000);
     }
-    mavlink_log_critical(&mavlink_log_pub, "-- offboard mode ok!");
+    mavlink_log_critical(&mavlink_log_pub, "--已经进入offboard模式");
 
     //这里开始就已经进入了offboard了 然后我们就可以命令飞机实时飞行了，如果有4g模块就可以做到实时的指点飞行
     //当然下面的代码我只是做了一个小测试，飞了4个航点 左边是写死在代码里的 以后只需要修改坐标的来源为网络就可以
@@ -265,6 +265,9 @@ int uart_net_thread(int argc, char *argv[])
         {
             sended++;
 
+            /////////////////////// 起飞点高度 NED坐标系/////////////////////////
+            _pos_sp_triplet.current.z = -5.0f;
+
             //因为前面已经写了初始化的值  所以这里我们直接发布就行，飞机会在home点正上方3米高度悬停
             if (_pos_sp_triplet_pub == nullptr) {
                 mavlink_log_critical(&mavlink_log_pub, "-- takeoff");
@@ -280,76 +283,18 @@ int uart_net_thread(int argc, char *argv[])
         {
             sended++;
 
-            //飞到这个坐标
+           ///////////////////////第一个航点的坐标 NED坐标系/////////////////////////
             _pos_sp_triplet.current.x=5.0f;
             _pos_sp_triplet.current.y=5.0f;
-            _pos_sp_triplet.current.z=-1.5f;
-            mavlink_log_critical(&mavlink_log_pub, "-- position -- 1");
+            _pos_sp_triplet.current.z=-5.0f;
+            mavlink_log_critical(&mavlink_log_pub, "飞机正在飞往指点位置");
             orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
             timetick = hrt_absolute_time();
         }
 
-        if(sended == 3 && hrt_absolute_time() - timetick > 10000000)//10秒以后进行第二个航点
-        {
-            sended++;
+       
 
-            _pos_sp_triplet.current.x=5.0f;
-            _pos_sp_triplet.current.y=-5.0f;
-            _pos_sp_triplet.current.z=-1.5f;
-            mavlink_log_critical(&mavlink_log_pub, "-- position -- 2");
-            orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
-            timetick = hrt_absolute_time();
-        }
-
-        if(sended == 4 && hrt_absolute_time() - timetick > 10000000)//10秒以后进行第三个航点
-        {
-            sended++;
-
-            _pos_sp_triplet.current.x=-5.0f;
-            _pos_sp_triplet.current.y=-5.0f;
-            _pos_sp_triplet.current.z=-1.5f;
-            mavlink_log_critical(&mavlink_log_pub, "-- position -- 3");
-            orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
-            timetick = hrt_absolute_time();
-        }
-/*
-        if(sended == 5 && hrt_absolute_time() - timetick > 10000000)//10秒以后进行第四个航点
-        {
-            sended++;
-
-            _pos_sp_triplet.current.x=-5.0f;
-            _pos_sp_triplet.current.y=5.0f;
-            _pos_sp_triplet.current.z=-1.5f;
-            mavlink_log_critical(&mavlink_log_pub, "-- position -- 4");
-            orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
-            timetick = hrt_absolute_time();
-        }
-
-        if(sended == 6 && hrt_absolute_time() - timetick > 10000000)//10秒以后进行第四个航点
-        {
-            sended++;
-
-            _pos_sp_triplet.current.x=5.0f;
-            _pos_sp_triplet.current.y=5.0f;
-            _pos_sp_triplet.current.z=-1.5f;
-            mavlink_log_critical(&mavlink_log_pub, "-- position -- 5");
-            orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
-            timetick = hrt_absolute_time();
-        }
-
-        if(sended == 7 && hrt_absolute_time() - timetick > 10000000)//10秒以后进行第四个航点
-        {
-            sended++;
-
-            _pos_sp_triplet.current.x=0.0f;
-            _pos_sp_triplet.current.y=0.0f;
-            _pos_sp_triplet.current.z=-1.5f;
-            mavlink_log_critical(&mavlink_log_pub, "-- position -- 6");
-            orb_publish(ORB_ID(position_setpoint_triplet), _pos_sp_triplet_pub, &_pos_sp_triplet);
-            timetick = hrt_absolute_time();
-        }*/
-
-        if(sended == 5 && hrt_absolute_time() - timetick > 10000000)//再过10秒关闭offboard模式切换到之前的模式
+        if(sended == 3 && hrt_absolute_time() - timetick > 15000000)//再过10秒关闭offboard模式切换到之前的模式
         //这就是为什么我们在起飞之前先设置为position control模式 这里切回之后就是position control mode
         {
             sended++;
@@ -360,19 +305,13 @@ int uart_net_thread(int argc, char *argv[])
 			_command.param2 = 3.0f;//二级模式为position control
             _command.param3 = 0.0f;//三级模式没有！
 
-            //修改原来的退出offboard 改为切换到land模式
-            // _command.param1 = 213;//用参数213会出现一个问题：切换的时候会自动解锁
-            // _command.param2 = 4;
-            // _command.param3 = 6;
-            // _command.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;
-
 
             if (vehicle_command_pub != nullptr) {//发布命令
                 orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
             } else {
                 vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
             }
-            mavlink_log_critical(&mavlink_log_pub, "-- switch land mode");
+            mavlink_log_critical(&mavlink_log_pub, "飞机正在执行降落");
             
         }
 
