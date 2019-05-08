@@ -94,7 +94,7 @@ int uart_net_thread(int argc, char *argv[])
        
        // printf("nav_state = %d\n",_status.nav_state);
        //选择一种模式触发offboard 选择land模式下触发offboard,这样offboard结束后可以直接返回到land模式执行降落
-        if(_status.nav_state==18)// NAVIGATION_STATE_AUTO_LAND = 18;;NAVIGATION_STATE_POSCTL=2定点模式 从定点模式切进offboard
+        if(_status.nav_state==2)// NAVIGATION_STATE_AUTO_LAND = 18;;NAVIGATION_STATE_POSCTL=2定点模式 从定点模式切进offboard
         {
             break;
         }
@@ -153,13 +153,13 @@ int uart_net_thread(int argc, char *argv[])
 
 	
     //这个循环控制让飞机开机的时候先切进postion control mode
-   /* while(1)
+   while(1)
     {
         //发送vehicle_command
         _command.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;//设置模式命令
-        _command.param1 = 1.0f;//主模式为costom
-        _command.param2 = 3.0f;//二级模式为position control
-        _command.param3 = 0.0f;//三级模式没有！
+        _command.param1 = 213;//主模式为costom
+        _command.param2 = 4;//二级模式为position control
+        _command.param3 = 6;//三级模式没有！
         if (vehicle_command_pub != nullptr) {
             orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
         } else {
@@ -192,7 +192,7 @@ int uart_net_thread(int argc, char *argv[])
         mavlink_log_critical(&mavlink_log_pub, "can't go into posctl mode,continue!");
         usleep(10000);
     }
-    mavlink_log_critical(&mavlink_log_pub, "posctrl mode ok!");*/
+    mavlink_log_critical(&mavlink_log_pub, "land mode ok!");
 	
 	
 
@@ -249,15 +249,15 @@ int uart_net_thread(int argc, char *argv[])
     {
         if(sended == 0)//第一步，解锁 （arm）
         {
-            // _command.command = vehicle_command_s::VEHICLE_CMD_COMPONENT_ARM_DISARM;//发送指令arm
-            // _command.param1 = 1.0f;//1.0为解锁 0.0为加锁
-            // if (vehicle_command_pub != nullptr) {//发布消息
-            //     orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
-            // } else {
-            //     vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
-            // }
+            _command.command = vehicle_command_s::VEHICLE_CMD_COMPONENT_ARM_DISARM;//发送指令arm
+            _command.param1 = 1.0f;//1.0为解锁 0.0为加锁
+            if (vehicle_command_pub != nullptr) {//发布消息
+                orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
+            } else {
+                vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
+            }
 
-            // mavlink_log_critical(&mavlink_log_pub, "-- arm ok!");
+            mavlink_log_critical(&mavlink_log_pub, "-- arm ok!");
             sended++;//进行第二部，这里只是测试代码 我就没有收取命令返回值了 以后做项目的时候记得加上
         }
 
