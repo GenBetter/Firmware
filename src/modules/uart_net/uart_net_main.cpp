@@ -242,9 +242,7 @@ int uart_net_thread(int argc, char *argv[])
     }
     mavlink_log_critical(&mavlink_log_pub, "--已经进入offboard模式");
 
-    //这里开始就已经进入了offboard了 然后我们就可以命令飞机实时飞行了，如果有4g模块就可以做到实时的指点飞行
-    //当然下面的代码我只是做了一个小测试，飞了4个航点 左边是写死在代码里的 以后只需要修改坐标的来源为网络就可以
-    //用手机 平板进行实时控制
+    //这里开始就已经进入了offboard了 然后我们就可以命令飞机实时飞行了
     while(1)
     {
         if(sended == 0)//第一步，解锁 （arm）

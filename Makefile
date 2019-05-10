@@ -79,6 +79,8 @@ endif
 #  explicity set default build target
 all: posix_sitl_default
 
+
+
 # Parsing
 # --------------------------------------------------------------------
 # assume 1st argument passed is the main target, the
@@ -91,7 +93,7 @@ j ?= 4
 ifndef NO_NINJA_BUILD
 NINJA_BUILD := $(shell ninja --version 2>/dev/null)
 endif
-ifdef NINJA_BUILD
+ifndef NINJA_BUILD
     PX4_CMAKE_GENERATOR ?= "Ninja"
     PX4_MAKE = ninja
     PX4_MAKE_ARGS =
@@ -130,6 +132,7 @@ define cmake-build
 +@if [ $(PX4_CMAKE_GENERATOR) = "Ninja" ] && [ -e $(BUILD_DIR)/Makefile ]; then rm -rf $(BUILD_DIR); fi
 +@if [ ! -e $(BUILD_DIR)/CMakeCache.txt ]; then mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && cmake .. -G$(PX4_CMAKE_GENERATOR) -DCONFIG=$(1) $(CMAKE_ARGS) || (cd .. && rm -rf $(BUILD_DIR)); fi
 +@echo "PX4 CONFIG: $(BUILD_DIR)"
++@echo "---------------------------------------------------------"
 +@$(PX4_MAKE) -C "$(BUILD_DIR)" $(PX4_MAKE_ARGS) $(ARGS)
 endef
 
