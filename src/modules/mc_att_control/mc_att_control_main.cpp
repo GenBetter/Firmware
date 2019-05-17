@@ -1058,6 +1058,8 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[3] = 0.0f;
 
 					_actuators.control[4] =0.4f;//PWM范围的控制
+					_actuators.control[5] =_manual_control_sp.x;//泵喷电机
+					_actuators.control[6] =_manual_control_sp.x;//泵喷电机
 					
 		
 

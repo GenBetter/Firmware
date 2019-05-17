@@ -1861,13 +1861,13 @@ int commander_thread_main(int argc, char *argv[])
 			stm32_gpiowrite(GPIO_AUX1,0);
 		}
 
-		if(sp_man.channel[6]==0){
+		if(sp_man.channel[7]==0){
 			stm32_gpiowrite(GPIO_AUX2,1);
 		}else{
 			stm32_gpiowrite(GPIO_AUX2,0);
 		}
 
-		if(sp_man.channel[6]>10 && sp_man.channel[6]<20){
+		if(sp_man.channel[9]>10 && sp_man.channel[9]<20){
 			stm32_gpiowrite(GPIO_AUX3,1);
 		}else{
 			stm32_gpiowrite(GPIO_AUX3,0);

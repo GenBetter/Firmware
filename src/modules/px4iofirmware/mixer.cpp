@@ -256,7 +256,7 @@ mixer_tick(void)
 
 
 
-	if(outputs[0]<0.5f){ //限制PWM输出范围是1000-1500
+	if(outputs[0]<0.6f){ //限制PWM输出范围是1000-1500
 		uint16_t	pwm_max1[PX4IO_SERVO_COUNT] = { 2000, 2000, 2000, 2000, 1500, 1500, 1500, 1500 };
 		
 		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
