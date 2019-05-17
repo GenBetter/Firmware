@@ -28,6 +28,7 @@
 #include <systemlib/param/param.h>
 
 #include <uORB/topics/manual_control_setpoint.h>
+#include <uORB/topics/sensor_deep.h>
 
 
 #include <math.h> 
@@ -170,9 +171,9 @@ int ms5837_app_main(int argc, char *argv[])
 
 
 
-    // struct manual_control_setpoint_s  manual; /**< controller status */
-    // memset(&manual, 0, sizeof(manual));
-    // orb_advert_t _manual_control_pub=NULL;
+    struct sensor_deep_s  _deep; /**< controller status */
+    memset(&_deep, 0, sizeof(_deep));
+    orb_advert_t _sensor_deep_pub=NULL;
     
     float temper=0.0f;
     float deep=0.0f;
@@ -220,8 +221,17 @@ int ms5837_app_main(int argc, char *argv[])
                     }
                 }
                 deep=atof(depth);
-                deep=deep;
+                _deep.altitude=deep;
                // warnx("%3.4f",(double)deep);
+
+                if (_sensor_deep_pub != NULL) {
+                    	orb_publish(ORB_ID(sensor_deep), _sensor_deep_pub, &_deep);
+
+                } else {
+                    	_sensor_deep_pub = orb_advertise(ORB_ID(sensor_deep), &_deep);
+                }
+
+
             }
 
 

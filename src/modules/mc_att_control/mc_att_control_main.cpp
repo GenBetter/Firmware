@@ -1068,7 +1068,7 @@ MulticopterAttitudeControl::task_main()
 					//水面模式，上面四个电机已经不再输出pwm值，他们在pixhawk上的硬件输出是MAIN5678
 					//主通道1234给了舵机，下面是舵机的控制，不要被这些index所混淆，真正的对应关系是在quad_x.main.mix里
 					//_actuators.control[5]泵喷电机控制量，主通道2输出，对用关系在quad_x.main.mix中定义
-					_actuators.control[5] =_manual_control_sp.x>0.5?(_manual_control_sp.x-0.5)*2:0;//泵喷电机 油门遥感控制泵喷电机  上一半行程有效
+					_actuators.control[5] =_manual_control_sp.x>0.5f?(_manual_control_sp.x-0.5f)*2:0;//泵喷电机 油门遥感控制泵喷电机  上一半行程有效
 					
 					//_actuators.control[6 7]舵机控制量，主通道34输出，对用关系在quad_x.main.mix中定义
 					_actuators.control[6] =_manual_control_sp.y;//舵机
@@ -1098,7 +1098,7 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[4] =0.8f;//水下 借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 					
 					//水下摇杆油门控z轴速度 横滚俯仰不用摇杆了直接在位置控制中att_sp限制为0 保持姿态平稳，这三个摇杆用来控制舵机
-					_actuators.control[5] =_manual_control_sp.x>0.5?(_manual_control_sp.x-0.5)*2:0;//电机
+					_actuators.control[5] =_manual_control_sp.x>0.5f?(_manual_control_sp.x-0.5f)*2:0;//电机
 					_actuators.control[6] =_manual_control_sp.y;//舵机
 					_actuators.control[7] =_manual_control_sp.r;//舵机 
 					

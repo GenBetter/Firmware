@@ -100,6 +100,7 @@
 #include <uORB/topics/airspeed.h>
 #include <uORB/topics/rc_parameter_map.h>
 #include <uORB/topics/sensor_preflight.h>
+#include <uORB/topics/sensor_deep.h>
 
 #include <DevMgr.hpp>
 
@@ -240,7 +241,8 @@ private:
 	int		_vcontrol_mode_sub;		/**< vehicle control mode subscription */
 	int 		_params_sub;			/**< notification of parameter updates */
 	int		_rc_parameter_map_sub;		/**< rc parameter map subscription */
-	int 		_manual_control_sub;		/**< notification of manual control updates */
+	int 		_manual_control_sub;
+	int      sensor_deep_sub;		/**< notification of manual control updates */
 
 	orb_advert_t	_sensor_pub;			/**< combined sensor data topic */
 	orb_advert_t	_manual_control_pub;		/**< manual control signal topic */
@@ -259,6 +261,8 @@ private:
 	struct rc_channels_s _rc;			/**< r/c channel data */
 	struct battery_status_s _battery_status;	/**< battery status */
 	struct differential_pressure_s _diff_pres;
+	struct manual_control_setpoint_s _manual;
+	struct sensor_deep_s _deep;
 	struct airspeed_s _airspeed;
 	struct rc_parameter_map_s _rc_parameter_map;
 	float _param_rc_values[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];	/**< parameter values for RC control */
@@ -594,6 +598,7 @@ Sensors::Sensors() :
 	_params_sub(-1),
 	_rc_parameter_map_sub(-1),
 	_manual_control_sub(-1),
+	sensor_deep_sub(-1),
 
 	/* publications */
 	_sensor_pub(nullptr),
@@ -624,7 +629,9 @@ Sensors::Sensors() :
 
 	memset(&_rc, 0, sizeof(_rc));
 	memset(&_diff_pres, 0, sizeof(_diff_pres));
-	memset(&_parameters, 0, sizeof(_parameters));
+	memset(&_diff_pres, 0, sizeof(_diff_pres));
+	memset(&_manual, 0, sizeof(_manual));
+	memset(&_deep, 0, sizeof(_deep));
 	memset(&_rc_parameter_map, 0, sizeof(_rc_parameter_map));
 	memset(&_last_sensor_data, 0, sizeof(_last_sensor_data));
 	memset(&_last_accel_timestamp, 0, sizeof(_last_accel_timestamp));
@@ -1334,6 +1341,21 @@ Sensors::mag_poll(struct sensor_combined_s &raw)
 void
 Sensors::baro_poll(struct sensor_combined_s &raw)
 {
+		bool update_manual=false;	//检查遥控器数据的更新
+		orb_check(_manual_control_sub, &update_manual);
+
+		if (update_manual) {
+			orb_copy(ORB_ID(manual_control_setpoint), _manual_control_sub, &_manual);
+		}
+
+		bool update_deep=false;	//检查遥控器数据的更新
+		orb_check(sensor_deep_sub, &update_deep);
+
+		if (update_deep) {
+			orb_copy(ORB_ID(sensor_deep), sensor_deep_sub, &_deep);
+		}
+		
+
 	bool got_update = false;
 
 	for (unsigned i = 0; i < _baro.subscription_count; i++) {
@@ -1373,6 +1395,12 @@ Sensors::baro_poll(struct sensor_combined_s &raw)
 			_baro.last_best_vote = (uint8_t)best_index;
 		}
 	}
+
+		if(_manual.gear_switch==8)//水下模式
+		{
+			raw.baro_alt_meter=_deep.altitude;
+		}
+
 }
 
 void
@@ -2505,6 +2533,8 @@ Sensors::task_main()
 	_rc_parameter_map_sub = orb_subscribe(ORB_ID(rc_parameter_map));
 
 	_manual_control_sub = orb_subscribe(ORB_ID(manual_control_setpoint));
+	
+	sensor_deep_sub = orb_subscribe(ORB_ID(sensor_deep));
 
 	_actuator_ctrl_0_sub = orb_subscribe(ORB_ID(actuator_controls_0));
 
