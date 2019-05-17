@@ -1025,12 +1025,14 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
 
-					_actuators.control[0] = math::constrain(_actuators.control[0], -0.2f, 0.2f);
-					_actuators.control[1] = math::constrain(_actuators.control[1], -0.2f, 0.2f);
-					_actuators.control[2] = math::constrain(_actuators.control[2], -0.2f, 0.2f);
+					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
+					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
 					
+					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
+					//在mixer.cpp中限制pwm输出范围为1000-1500
+					_actuators.control[4] =0.1f;
 
-					_actuators.control[4] =0.1f;//PWM范围的控制
 
 				}
 				else if(_manual_control_sp.gear_switch==2) //定高模式　空中定高正常控制
@@ -1041,11 +1043,13 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
 
-					_actuators.control[0] = math::constrain(_actuators.control[0], -0.2f, 0.2f);
-					_actuators.control[1] = math::constrain(_actuators.control[1], -0.2f, 0.2f);
-					_actuators.control[2] = math::constrain(_actuators.control[2], -0.2f, 0.2f);
+					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
+					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
 					
-					_actuators.control[4] =0.2f;//PWM范围的控制
+					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
+					//在mixer.cpp中限制pwm输出范围为1000-1500
+					_actuators.control[4] =0.2f;//空中定高
 					
 
 				}
@@ -1057,28 +1061,46 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[2] = 0.0f;
 					_actuators.control[3] = 0.0f;
 
-					_actuators.control[4] =0.4f;//PWM范围的控制
-					_actuators.control[5] =_manual_control_sp.x;//泵喷电机
-					_actuators.control[6] =_manual_control_sp.x;//泵喷电机
-					
-		
+					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
+					//在mixer.cpp中限制pwm输出范围为1000-1500
+					_actuators.control[4] =0.4f;//水面
 
-					// _actuators.control[4] = _manual_control_sp.z;//油门直通控制泵喷速度 范围[0,1]
-					// _actuators.control[5] = _manual_control_sp.r;//偏航直通　控制左右舵机摆动 范围[-1,1]
-					// _actuators.control[6] =0.5f;
-					// _actuators.control[7] =0.5f;//限制PWM输出为1500,既不正转也不反转
+					//水面模式，上面四个电机已经不再输出pwm值，他们在pixhawk上的硬件输出是MAIN5678
+					//主通道1234给了舵机，下面是舵机的控制，不要被这些index所混淆，真正的对应关系是在quad_x.main.mix里
+					//_actuators.control[5]泵喷电机控制量，主通道2输出，对用关系在quad_x.main.mix中定义
+					_actuators.control[5] =_manual_control_sp.x>0.5?(_manual_control_sp.x-0.5)*2:0;//泵喷电机 油门遥感控制泵喷电机  上一半行程有效
+					
+					//_actuators.control[6 7]舵机控制量，主通道34输出，对用关系在quad_x.main.mix中定义
+					_actuators.control[6] =_manual_control_sp.y;//舵机
+					_actuators.control[7] =_manual_control_sp.r;//舵机
+				
 				}
 				else if(_manual_control_sp.gear_switch==8)////水下模式　控制泵喷速度　左右舵机　上下舵机　以及四旋翼正反转　此时处于定高模式
 				{
-					// warnx("8");
-					_actuators.control[0] = 0.0f;
-					_actuators.control[1] = 0.0f;
-					_actuators.control[2] = 0.0f;
-					_actuators.control[3] = _manual_control_sp.z;
 
-					_actuators.control[4] =0.8f;//PWM范围的控制
+					//下面这种写法 还是想实现水下的定深，油门决定了z轴的速度，同时在位置控制中 限制了_att_sp.roll、pitch_body=0
+					//在位置控制里面去写 水下的话 保持姿态水平 同时定深，其实就是定高模式，此时四个摇杆只有油门摇杆控速度 其他三个摇杆不控了
+					//这时候不用的三个摇杆 可以选择用来控制舵机
+					_actuators.control[0] = (PX4_ISFINITE(_att_control(0))) ? _att_control(0) : 0.0f;
+					_actuators.control[1] = (PX4_ISFINITE(_att_control(1))) ? _att_control(1) : 0.0f;
+					_actuators.control[2] =  0.0f; //水下只保持姿态平稳 航向不控，航向的摇杆在下面control[7]用于控制舵机了
+					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
+
+					_actuators.control[0] = math::constrain(_actuators.control[0], -0.2f, 0.2f);
+					_actuators.control[1] = math::constrain(_actuators.control[1], -0.2f, 0.2f);
+
+					// 油门直通 控制四个电机的正转反转
+					// _actuators.control[0] = 0.0f;
+					// _actuators.control[1] = 0.0f;
+					// _actuators.control[2] = 0.0f;
+					// _actuators.control[3] = _manual_control_sp.z;
+
+					_actuators.control[4] =0.8f;//水下 借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 					
-
+					//水下摇杆油门控z轴速度 横滚俯仰不用摇杆了直接在位置控制中att_sp限制为0 保持姿态平稳，这三个摇杆用来控制舵机
+					_actuators.control[5] =_manual_control_sp.x>0.5?(_manual_control_sp.x-0.5)*2:0;//电机
+					_actuators.control[6] =_manual_control_sp.y;//舵机
+					_actuators.control[7] =_manual_control_sp.r;//舵机 
 					
 				}
 				else{

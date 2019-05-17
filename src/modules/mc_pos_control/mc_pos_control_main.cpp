@@ -2129,8 +2129,18 @@ MulticopterPositionControl::task_main()
 
 			/* control roll and pitch directly if no aiding velocity controller is active */
 			if (!_control_mode.flag_control_velocity_enabled) {
-				_att_sp.roll_body = _manual.y * _params.man_roll_max;
-				_att_sp.pitch_body = -_manual.x * _params.man_pitch_max;
+
+				//这里是定高模式下的 水平面控制，定高模式 横滚俯仰的摇杆是转化成期望姿态的，定点模式 横滚俯仰的摇杆是转化成期望速度的
+				if(_manual.gear_switch==8)//配合姿态控制的 水下模式 将水平姿态定死
+				{
+					_att_sp.roll_body = 0;
+					_att_sp.pitch_body = 0;
+				}
+				else
+				{
+					_att_sp.roll_body = _manual.y * _params.man_roll_max;
+					_att_sp.pitch_body = -_manual.x * _params.man_pitch_max;
+				}
 
 				/* only if optimal recovery is not used, modify roll/pitch */
 				if (_params.opt_recover <= 0) {
