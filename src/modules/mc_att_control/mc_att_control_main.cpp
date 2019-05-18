@@ -1050,11 +1050,12 @@ MulticopterAttitudeControl::task_main()
 					// _actuators.control[2] = 0.0f;
 					// _actuators.control[3] = _manual_control_sp.z;
 
-
+					
 					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
 					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
 					_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
-					
+
+					//warnx("0=%2.2f   1=%2.2f    2=%2.2f      3=%2.2f",(double)_actuators.control[0],(double)_actuators.control[1],(double)_actuators.control[2],(double)_actuators.control[3]);					
 					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 					//在mixer.cpp中限制pwm输出范围为1000-1500
 					_actuators.control[4] =0.2f;//空中定高

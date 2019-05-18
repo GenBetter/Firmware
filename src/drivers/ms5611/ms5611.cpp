@@ -808,7 +808,7 @@ MS5611::collect()
 			// i++;
 			// if(i>100){
 			// 	i=0;
-			// 	warnx("%2.4f",(double)report.pressure);
+			// 	warnx("%2.4f",(double)report.altitude);
 			// }
 		}
 

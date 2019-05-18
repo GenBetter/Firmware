@@ -884,6 +884,8 @@ MulticopterPositionControl::control_manual(float dt)
 	if (_control_mode.flag_control_altitude_enabled) {
 		/* set vertical velocity setpoint with throttle stick */
 		req_vel_sp(2) = -scale_control(_manual.z - 0.5f, 0.5f, _params.alt_ctl_dz, _params.alt_ctl_dy); // D
+
+		// warnx("man=%2.2f  vel=%2.2f ",(double)_manual.z,(double)req_vel_sp(2));
 	}
 
 	if (_control_mode.flag_control_position_enabled) {
@@ -2140,6 +2142,7 @@ MulticopterPositionControl::task_main()
 				{
 					_att_sp.roll_body = _manual.y * _params.man_roll_max;
 					_att_sp.pitch_body = -_manual.x * _params.man_pitch_max;
+					//warnx("roll=%2.2f  pitch=%2.2f ",(double)_att_sp.roll_body,(double)_att_sp.pitch_body);
 				}
 
 				/* only if optimal recovery is not used, modify roll/pitch */
