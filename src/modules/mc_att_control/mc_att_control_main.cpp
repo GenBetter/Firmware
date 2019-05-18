@@ -1043,6 +1043,14 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
 
+					//下面是测试 遥控器数据直通混混控器，这种测试下 pwm输出的范围刚好在1500-2000，而且实际测试中满足电机转向
+					//即证明现在定高模式下的pwm输出限幅1500-2000 正转是ok的。
+					// _actuators.control[0] = 0.0f;
+					// _actuators.control[1] = 0.0f;
+					// _actuators.control[2] = 0.0f;
+					// _actuators.control[3] = _manual_control_sp.z;
+
+
 					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
 					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
 					_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
