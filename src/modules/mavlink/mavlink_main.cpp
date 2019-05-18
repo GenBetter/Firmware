@@ -1969,6 +1969,7 @@ Mavlink::task_main(int argc, char *argv[])
 
 	switch (_mode) {
 	case MAVLINK_MODE_NORMAL:
+		//这是ttyS1就是数传1的mavlink配置
 		configure_stream("SYS_STATUS", 1.0f);
 		//configure_stream("EXTENDED_SYS_STATE", 1.0f);
 		configure_stream("HIGHRES_IMU", 1.5f);
@@ -2028,6 +2029,7 @@ Mavlink::task_main(int argc, char *argv[])
 		break;
 
 	case MAVLINK_MODE_OSD:
+	//猜测这是数传2的配置
 		configure_stream("SYS_STATUS", 5.0f);
 		configure_stream("EXTENDED_SYS_STATE", 1.0f);
 		configure_stream("ATTITUDE", 25.0f);
@@ -2049,33 +2051,34 @@ Mavlink::task_main(int argc, char *argv[])
 		break;
 
 	case MAVLINK_MODE_CONFIG:
+		//这是ttyACM0就是usb的mavlink配置 就是地面站的analyze
 		// Enable a number of interesting streams we want via USB
 		configure_stream("SYS_STATUS", 1.0f);
-		configure_stream("EXTENDED_SYS_STATE", 2.0f);
-		configure_stream("HIGHRES_IMU", 50.0f);
-		configure_stream("ATTITUDE", 100.0f);
+		//configure_stream("EXTENDED_SYS_STATE", 2.0f);
+		configure_stream("HIGHRES_IMU", 20.0f);
+		configure_stream("ATTITUDE", 50.0f);
 		configure_stream("RC_CHANNELS", 10.0f);
 		configure_stream("SERVO_OUTPUT_RAW_0", 20.0f);
 		configure_stream("SERVO_OUTPUT_RAW_1", 20.0f);
 		configure_stream("ALTITUDE", 10.0f);
-		configure_stream("GPS_RAW_INT", 10.0f);
-		configure_stream("ADSB_VEHICLE", 20.0f);
-		configure_stream("COLLISION", 20.0f);
+		//configure_stream("GPS_RAW_INT", 10.0f);
+		//configure_stream("ADSB_VEHICLE", 20.0f);
+		//configure_stream("COLLISION", 20.0f);
 		configure_stream("DISTANCE_SENSOR", 10.0f);
-		configure_stream("OPTICAL_FLOW_RAD", 10.0f);
-		configure_stream("VISION_POSITION_NED", 10.0f);
+		//configure_stream("OPTICAL_FLOW_RAD", 10.0f);
+		//configure_stream("VISION_POSITION_NED", 10.0f);
 		configure_stream("ESTIMATOR_STATUS", 5.0f);
 		configure_stream("NAV_CONTROLLER_OUTPUT", 10.0f);
-		configure_stream("GLOBAL_POSITION_INT", 10.0f);
+		//configure_stream("GLOBAL_POSITION_INT", 10.0f);
 		configure_stream("LOCAL_POSITION_NED", 30.0f);
-		configure_stream("POSITION_TARGET_GLOBAL_INT", 10.0f);
+		//configure_stream("POSITION_TARGET_GLOBAL_INT", 10.0f);
 		configure_stream("ATTITUDE_TARGET", 8.0f);
 		configure_stream("HOME_POSITION", 0.5f);
 		configure_stream("NAMED_VALUE_FLOAT", 50.0f);
-		configure_stream("VFR_HUD", 20.0f);
-		configure_stream("WIND_COV", 10.0f);
-		configure_stream("CAMERA_TRIGGER", 500.0f);
-		configure_stream("MISSION_ITEM", 50.0f);
+		//configure_stream("VFR_HUD", 20.0f);
+		//configure_stream("WIND_COV", 10.0f);
+		//configure_stream("CAMERA_TRIGGER", 500.0f);
+		//configure_stream("MISSION_ITEM", 50.0f);
 		configure_stream("ACTUATOR_CONTROL_TARGET0", 30.0f);
 		configure_stream("MANUAL_CONTROL", 5.0f);
 
