@@ -1855,22 +1855,29 @@ int commander_thread_main(int argc, char *argv[])
         // warnx("6=%d",sp_man.channel[6]);
         // warnx("7=%d",sp_man.channel[7]);
         // warnx("9=%d",sp_man.channel[9]);
-		if(sp_man.channel[6]==0){
+		if(sp_man.channel[6]==1){//按下输出高电平
 			stm32_gpiowrite(GPIO_AUX1,1);
 		}else{
 			stm32_gpiowrite(GPIO_AUX1,0);
 		}
 
-		if(sp_man.channel[7]==0){
+		if(sp_man.channel[7]==1){//按下输出高电平
 			stm32_gpiowrite(GPIO_AUX2,1);
 		}else{
 			stm32_gpiowrite(GPIO_AUX2,0);
 		}
 
-		if(sp_man.channel[9]>10 && sp_man.channel[9]<20){
+		if(sp_man.channel[9]<5){//这是一个左右滑轮 最左边 最右边有效
 			stm32_gpiowrite(GPIO_AUX3,1);
-		}else{
+		}
+		else{
 			stm32_gpiowrite(GPIO_AUX3,0);
+		}
+
+		if(sp_man.channel[9]>25){//这是一个左右滑轮 最左边 最右边有效
+			stm32_gpiowrite(GPIO_AUX4,1);
+		}else{
+			stm32_gpiowrite(GPIO_AUX4,0);
 		}
 
 
