@@ -308,7 +308,7 @@ int telem2_app_main(int argc, char *argv[])
                     if ( button%2==0 ){//偶数
                         
                         if(RC_rec[5]==0){
-                            mode=2; //mode=1定义为manual模式，下面会发布vehicle_commander切换到MANUAL
+                            mode=1; //mode=1定义为manual模式，下面会发布vehicle_commander切换到MANUAL
                                     //如果考虑光华遥控器和都是定高飞行，可以没有manual模式 可以在这里mode=2，就是只有ALT 在ALT下gear_swutch区分空中、水面、水下
                         }
                         else{
