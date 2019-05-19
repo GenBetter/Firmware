@@ -309,7 +309,7 @@ int telem2_app_main(int argc, char *argv[])
                     //warnx("- %d",button);
 
                     //记录上一次的飞行模式
-                    mode_last=mode;
+                    
                     //判断最新的飞行模式切换 这一部分模式切换没有问题
                     if ( button%2==0 ){//偶数
                         
@@ -327,9 +327,17 @@ int telem2_app_main(int argc, char *argv[])
                             mode=4;
                         }
                         else{
-                            mode=8;
+                            if(mode_last==4){
+                                mode=8;//限制只有在水面模式下才可以切换到水下模式
+                            }
+                            else{
+
+                                if(mode_last!=8)
+                                mode=1;//否则的话切换到manual模式
+                            }
+                            
                         }
-                    }                  
+                    }          
 
                      manual.gear_switch=mode;
                     if (_manual_control_pub != NULL) {
@@ -342,7 +350,7 @@ int telem2_app_main(int argc, char *argv[])
                     // //如果飞行模式发生了切换 发布
                     if(mode!=mode_last)
                     {   
-
+                        mode_last=mode;//如果新模式 不等于上一次的模式，则记录下当前模式
                         //  自稳（mode=1）    定高（mode=2）  备注：使用gear_switch  区分三种不同的定高模式
                         //  水下（mode=8）    水面（mode=4）
                         //warnx("mode = %d",mode);
