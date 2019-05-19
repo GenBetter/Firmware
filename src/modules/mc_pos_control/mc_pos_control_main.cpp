@@ -885,7 +885,6 @@ MulticopterPositionControl::control_manual(float dt)
 		/* set vertical velocity setpoint with throttle stick */
 		req_vel_sp(2) = -scale_control(_manual.z - 0.5f, 0.5f, _params.alt_ctl_dz, _params.alt_ctl_dy); // D
 
-		// warnx("man=%2.2f  vel=%2.2f ",(double)_manual.z,(double)req_vel_sp(2));
 	}
 
 	if (_control_mode.flag_control_position_enabled) {
@@ -1756,6 +1755,13 @@ MulticopterPositionControl::task_main()
 					/* velocity error */
 					math::Vector<3> vel_err = _vel_sp - _vel;
 
+						static int m=0;
+						m++;
+						if(m>1200){
+							warnx("--vel_err=%2.2f",vel_err);
+							m=0;
+						}
+			
 					// check if we have switched from a non-velocity controlled mode into a velocity controlled mode
 					// if yes, then correct xy velocity setpoint such that the attitude setpoint is continuous
 					if (!control_vel_enabled_prev && _control_mode.flag_control_velocity_enabled) {
@@ -2087,6 +2093,15 @@ MulticopterPositionControl::task_main()
 			_vel_sp_prev = _vel;
 		}
 
+		static int j=0;
+		j++;
+		if(j>1200){
+					warnx("vel sp");
+					warnx(" vx=%2.2f  vy=%2.2f  vz=%2.2f ",(double)_local_pos_sp.vx,(double)_local_pos_sp.vy,(double)_local_pos_sp.vz);	
+					j=0;
+		}
+
+
 		/* generate attitude setpoint from manual controls */
 		if (_control_mode.flag_control_manual_enabled && _control_mode.flag_control_attitude_enabled) {
 
@@ -2223,6 +2238,15 @@ MulticopterPositionControl::task_main()
 				_att_sp_pub = orb_advertise(_attitude_setpoint_id, &_att_sp);
 			}
 		}
+
+
+					static int z=0;
+					z++;
+					if(z>1200){
+						warnx("att sp");
+						warnx(" roll=%2.2f  pitch=%2.2f  yaw=%2.2f yawrate=%2.2f  thro=%2.2f",(double)_att_sp.roll_body,(double)_att_sp.pitch_body,(double)_att_sp.yaw_body,(double)_att_sp.yaw_sp_move_rate,(double)_att_sp.thrust);	
+						z=0;
+					}
 
 		/* reset altitude controller integral (hovering throttle) to manual throttle after manual throttle control */
 		reset_int_z_manual = _control_mode.flag_armed && _control_mode.flag_control_manual_enabled

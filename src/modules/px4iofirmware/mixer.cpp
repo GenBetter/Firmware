@@ -275,8 +275,8 @@ mixer_tick(void)
 	else if(outputs[0]>0.7f)//限制PWM输出为1000-2000,水下既正转也反转 主通道1是区分pwm范围 2是泵喷  34电机  5678是四旋翼
 	{
 
-		uint16_t	pwm_min3[PX4IO_SERVO_COUNT] = { 1000, 1000, 1000, 1000, 1300, 1300, 1300, 1300 };
-		uint16_t	pwm_max3[PX4IO_SERVO_COUNT] = { 2000, 2000, 2000, 2000, 1700, 1700, 1700, 1700 };
+		uint16_t	pwm_min3[PX4IO_SERVO_COUNT] = { 1000, 1000, 1000, 1000, 1400, 1400, 1400, 1400 };
+		uint16_t	pwm_max3[PX4IO_SERVO_COUNT] = { 2000, 2000, 2000, 2000, 1600, 1600, 1600, 1600 };
 			
 		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
 			       pwm_min3, pwm_max3, outputs, r_page_servos, &pwm_limit);

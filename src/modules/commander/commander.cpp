@@ -1834,13 +1834,33 @@ int commander_thread_main(int argc, char *argv[])
 			}
 		}
 
-	
+		static uint8_t copy=0;
 
 		orb_check(sp_man_sub, &updated);
 
 		if (updated) {
 			orb_copy(ORB_ID(manual_control_setpoint), sp_man_sub, &sp_man);
+
+			if(sp_man.gear_switch!=copy){
+
+				copy = sp_man.gear_switch;
+				if(sp_man.gear_switch==1){
+					mavlink_log_critical(&mavlink_log_pub, "MANUAL");
+				}
+				else if(sp_man.gear_switch==2){
+					mavlink_log_critical(&mavlink_log_pub, "in air ALT");
+				}
+				else if(sp_man.gear_switch==4){
+					mavlink_log_critical(&mavlink_log_pub, "on water ship");
+				}
+				else if(sp_man.gear_switch==8)
+				{
+					mavlink_log_critical(&mavlink_log_pub, "under submarine");
+				}
+			}
 		}
+
+		
 
 
 		//下面代码根据遥控器通道[6][7][9]控制GPIO的输出

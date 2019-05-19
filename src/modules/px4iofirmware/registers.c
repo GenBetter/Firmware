@@ -247,7 +247,7 @@ uint16_t		r_page_servo_failsafe[PX4IO_SERVO_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0 };
  * minimum PWM values when armed
  *
  */
-uint16_t		r_page_servo_control_min[PX4IO_SERVO_COUNT] = { PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN };
+uint16_t		r_page_servo_control_min[PX4IO_SERVO_COUNT] = { PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, PWM_DEFAULT_MIN, 1500, 1500, 1500, 1500 };
 
 /**
  * PAGE 107

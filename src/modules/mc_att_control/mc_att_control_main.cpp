@@ -1037,6 +1037,14 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[6]=0;
 					_actuators.control[7]=0;
 
+					static int i=0;
+					i++;
+					if(i>1210){
+						i=0;
+						warnx("man fina");
+						warnx("0=%2.2f   1=%2.2f    2=%2.2f      3=%2.2f\n\n\n\n",(double)_actuators.control[0],(double)_actuators.control[1],(double)_actuators.control[2],(double)_actuators.control[3]);					
+					}
+
 
 				}
 				else if(_manual_control_sp.gear_switch==2) //定高模式　空中定高正常控制
@@ -1055,11 +1063,18 @@ MulticopterAttitudeControl::task_main()
 					// _actuators.control[3] = _manual_control_sp.z;
 
 					
-					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
-					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
-					_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
+					// _actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
+					// _actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
+					// _actuators.control[2] = math::constrain(_actuators.control[2], -0.2f, 0.2f);
 
-					//warnx("0=%2.2f   1=%2.2f    2=%2.2f      3=%2.2f",(double)_actuators.control[0],(double)_actuators.control[1],(double)_actuators.control[2],(double)_actuators.control[3]);					
+					static int i=0;
+					i++;
+					if(i>1210){
+						i=0;
+						warnx("alt fina");
+						warnx("0=%2.2f   1=%2.2f    2=%2.2f      3=%2.2f\n\n\n\n",(double)_actuators.control[0],(double)_actuators.control[1],(double)_actuators.control[2],(double)_actuators.control[3]);					
+					}
+					
 					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 					//在mixer.cpp中限制pwm输出范围为1000-1500
 					_actuators.control[4] =0.2f;//空中定高

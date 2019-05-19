@@ -279,8 +279,14 @@ int telem2_app_main(int argc, char *argv[])
                     //注意这里z轴范围归一化0-1，保持了和正常遥控器一样的范围，最低为0 最高为1 默认中间为0.5
                     //这种配置如果是飞STAB肯定有问题 但是如果飞定高就相当合适
                     //所以全局只飞在定高模式下，在定高模式区分：空中 水面 还是水下，至于真实的定高效果可能还需要优化
-                    manual.z=(float)( RC_rec[2]/200.0 );   
-
+                    manual.z=(float)( RC_rec[2]/200.0 ); 
+                    static int i=0;
+                    i++;
+                    if(i>15){
+                        i=0;
+                    warnx("yao gan");
+                    warnx("x=%2.2f  y=%2.2f  r=%2.2f  z=%2.2f  ",(double)manual.x,(double)manual.y,(double)manual.r,(double)manual.z);  
+                    }
 
                     //既然遥控器数据OK，下面就进行发布了                  
                     //用航天光华的遥控器数据进行替换，原来在sensor.cpp中进行发布，那里已经屏蔽
