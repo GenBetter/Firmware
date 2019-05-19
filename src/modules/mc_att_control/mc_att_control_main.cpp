@@ -1027,7 +1027,7 @@ MulticopterAttitudeControl::task_main()
 
 					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
 					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
-					_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.1f, 0.1f);
 					
 					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 					//在mixer.cpp中限制pwm输出范围为1000-1500
@@ -1063,9 +1063,9 @@ MulticopterAttitudeControl::task_main()
 					// _actuators.control[3] = _manual_control_sp.z;
 
 					
-					// _actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
-					// _actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
-					// _actuators.control[2] = math::constrain(_actuators.control[2], -0.2f, 0.2f);
+					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
+					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.08f, 0.08f);
 
 					static int i=0;
 					i++;
@@ -1118,8 +1118,9 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[2] =  0.0f; //水下只保持姿态平稳 航向不控，航向的摇杆在下面control[7]用于控制舵机了
 					_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
 
-					_actuators.control[0] = math::constrain(_actuators.control[0], -0.2f, 0.2f);
-					_actuators.control[1] = math::constrain(_actuators.control[1], -0.2f, 0.2f);
+					_actuators.control[0] = math::constrain(_actuators.control[0], -0.1f, 0.1f);
+					_actuators.control[1] = math::constrain(_actuators.control[1], -0.1f, 0.1f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.05f, 0.05f);
 
 					// 油门直通 控制四个电机的正转反转
 					// _actuators.control[0] = 0.0f;
