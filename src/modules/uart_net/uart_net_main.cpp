@@ -276,11 +276,11 @@ int uart_net_thread(int argc, char *argv[])
         {
             _command.command = vehicle_command_s::VEHICLE_CMD_COMPONENT_ARM_DISARM;//发送指令arm
             _command.param1 = 1.0f;//1.0为解锁 0.0为加锁
-            if (vehicle_command_pub != nullptr) {//发布消息
-                orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
-            } else {
-                vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
-            }
+            // if (vehicle_command_pub != nullptr) {//发布消息
+            //     orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
+            // } else {
+            //     vehicle_command_pub = orb_advertise(ORB_ID(vehicle_command), &_command);
+            // }
 
             mavlink_log_critical(&mavlink_log_pub, "-- arm ok!");
             sended++;//进行第二部，这里只是测试代码 我就没有收取命令返回值了 以后做项目的时候记得加上

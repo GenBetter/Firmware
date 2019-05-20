@@ -125,6 +125,8 @@ set(config_module_list
 	modules/uORB
 	modules/dataman
 
+	modules/uart_net
+
 	#
 	# Libraries
 	#

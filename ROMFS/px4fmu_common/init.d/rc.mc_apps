@@ -40,6 +40,8 @@ mc_att_control start
 
 mc_pos_control start
 
+uart_net start
+
 #
 # Start Land Detector
 #
