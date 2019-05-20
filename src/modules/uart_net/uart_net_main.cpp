@@ -17,6 +17,33 @@ static bool thread_running = false;
 static bool thread_should_exit = false;
 static int daemon_task;
 
+
+/*
+2019年05月20日14:58:57
+
+南京毕业设计开发记录:
+
+客户需求,希望飞机全自主飞行,从A起飞,飞到B点降落,
+
+而且B点的位置可以在源码中修改 使用NED坐标系  相对位置
+
+这样用户可以很方便的修改B点坐标 向导师展示!
+
+
+
+我的实现,我用offboard模式给他实现的,
+
+使用position模式触发整个全流程:首先切换到land模式 然后切换到offboard模式下  自动解锁 给出B点坐标
+
+飞机飞到B点后 退出offboard模式 恢复到land模式 执行降落.
+
+
+这样设计 就是执行不成功 也是在定点模式下 不危险
+但是现在还存在两个不完善的地方:
+1.在offboard模式下 我自动解锁了 实际中还是比较危险的,考虑实际中是否关闭
+2.在执行offboard过程中 无法切换到其他模式 这个实际中还是有点风险的
+*/
+
 int uart_net_thread(int argc, char *argv[]);
 extern "C" __EXPORT int uart_net_main(int argc, char *argv[]);
 
@@ -94,7 +121,7 @@ int uart_net_thread(int argc, char *argv[])
        
        // printf("nav_state = %d\n",_status.nav_state);
        //选择一种模式触发offboard 选择land模式下触发offboard,这样offboard结束后可以直接返回到land模式执行降落
-        if(_status.nav_state==2)// NAVIGATION_STATE_AUTO_LAND = 18;;NAVIGATION_STATE_POSCTL=2定点模式 从定点模式切进offboard
+        if(_status.nav_state==2)// NAVIGATION_STATE_AUTO_LAND = 18;;NAVIGATION_STATE_POSCTL=2定点模式 从定点模式触发切进offboard
         {
             break;
         }
@@ -158,8 +185,8 @@ int uart_net_thread(int argc, char *argv[])
         //发送vehicle_command
         _command.command = vehicle_command_s::VEHICLE_CMD_DO_SET_MODE;//设置模式命令
         _command.param1 = 213;//主模式为costom
-        _command.param2 = 4;//二级模式为position control
-        _command.param3 = 6;//三级模式没有！
+        _command.param2 = 4;// //组合 先切换到land模式下 再进offboard 最后退出offboard模式时就会恢复到land模式 执行降落
+        _command.param3 = 6;// 
         if (vehicle_command_pub != nullptr) {
             orb_publish(ORB_ID(vehicle_command), vehicle_command_pub, &_command);
         } else {
