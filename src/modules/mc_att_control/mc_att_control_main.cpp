@@ -1027,7 +1027,7 @@ MulticopterAttitudeControl::task_main()
 
 					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
 					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
-					_actuators.control[2] = math::constrain(_actuators.control[2], -0.1f, 0.1f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
 					
 					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 					//在mixer.cpp中限制pwm输出范围为1000-1500
@@ -1065,7 +1065,7 @@ MulticopterAttitudeControl::task_main()
 					
 					_actuators.control[0] = math::constrain(_actuators.control[0], -0.3f, 0.3f);
 					_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
-					_actuators.control[2] = math::constrain(_actuators.control[2], -0.08f, 0.08f);
+					_actuators.control[2] = math::constrain(_actuators.control[2], -0.1f, 0.1f);
 
 					static int i=0;
 					i++;

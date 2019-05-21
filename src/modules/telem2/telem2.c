@@ -358,7 +358,7 @@ int telem2_app_main(int argc, char *argv[])
                         if(mode!=1){
 
                             vcmd.param1 = 81;//用参数213会出现一个问题：切换的时候会自动解锁  参数29出现一个问题切换模式的时候自动上锁
-                            vcmd.param2 = PX4_CUSTOM_MAIN_MODE_ALTCTL;
+                            vcmd.param2 = PX4_CUSTOM_MAIN_MODE_POSCTL;
                             vcmd.param3 = 0;
                             vcmd.command = 176;
                             vcmd.target_system = sys_id;

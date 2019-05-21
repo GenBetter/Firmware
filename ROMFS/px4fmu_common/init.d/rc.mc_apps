@@ -30,11 +30,14 @@ then
 fi
 
 # EKF
-if param compare SYS_MC_EST_GROUP 2
-then
-	ekf2 start
-fi
+#if param compare SYS_MC_EST_GROUP 2
+#then
+#	ekf2 start
+#fi
 #---------------------------------------
+attitude_estimator_q start
+
+position_estimator_inav start
 
 mc_att_control start
 

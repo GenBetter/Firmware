@@ -257,7 +257,7 @@ mixer_tick(void)
 
 	if(outputs[0]<0.3f){ //空中 限制PWM输出范围是1500-2000  前面四个是舵机 后面四个才是电机，可以参考quad.main.mix
 		
-		uint16_t	pwm_min1[PX4IO_SERVO_COUNT] = { 1000, 1000, 1000, 1000, 1500, 1500, 1500, 1500 };
+		uint16_t	pwm_min1[PX4IO_SERVO_COUNT] = { 1000, 1000, 1000, 1000, 1560, 1560, 1560, 1560 };
 		uint16_t	pwm_max1[PX4IO_SERVO_COUNT] = { 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000 };
 
 		pwm_limit_calc(should_arm, should_arm_nothrottle, mixed, r_setup_pwm_reverse, r_page_servo_disarmed,
