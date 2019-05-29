@@ -1037,13 +1037,13 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[6]=0;
 					_actuators.control[7]=0;
 
-					static int i=0;
-					i++;
-					if(i>1210){
-						i=0;
-						warnx("man fina");
-						warnx("0=%2.2f   1=%2.2f    2=%2.2f      3=%2.2f\n\n\n\n",(double)_actuators.control[0],(double)_actuators.control[1],(double)_actuators.control[2],(double)_actuators.control[3]);					
-					}
+					// static int i=0;
+					// i++;
+					// if(i>1210){
+					// 	i=0;
+					// 	warnx("man fina");
+					// 	warnx("0=%2.2f   1=%2.2f    2=%2.2f      3=%2.2f\n\n\n\n",(double)_actuators.control[0],(double)_actuators.control[1],(double)_actuators.control[2],(double)_actuators.control[3]);					
+					// }
 
 
 				}

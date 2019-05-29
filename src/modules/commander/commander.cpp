@@ -1848,7 +1848,7 @@ int commander_thread_main(int argc, char *argv[])
 					mavlink_log_critical(&mavlink_log_pub, "MANUAL");
 				}
 				else if(sp_man.gear_switch==2){
-					mavlink_log_critical(&mavlink_log_pub, "in air ALT");
+					mavlink_log_critical(&mavlink_log_pub, "in air ALT or POS");
 				}
 				else if(sp_man.gear_switch==4){
 					mavlink_log_critical(&mavlink_log_pub, "on water ship");
@@ -2058,8 +2058,11 @@ int commander_thread_main(int argc, char *argv[])
 					 * so lets reset to a classic non-usb state.
 					 */
 					mavlink_log_critical(&mavlink_log_pub, "USB disconnected, rebooting.")
+					mavlink_log_critical(&mavlink_log_pub, " terrible , USB disconnected, rebooting,requst re-pulg,")
+					warnx(" terrible , USB disconnected, rebooting,requst re-pulg");
+					
 					usleep(400000);
-					px4_systemreset(false);
+					//px4_systemreset(false);
 				}
 
 				/* finally judge the USB connected state based on software detection */

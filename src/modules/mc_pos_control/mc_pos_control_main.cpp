@@ -2240,13 +2240,13 @@ MulticopterPositionControl::task_main()
 		}
 
 
-					static int z=0;
-					z++;
-					if(z>1200){
-						warnx("att sp");
-						warnx(" roll=%2.2f  pitch=%2.2f  yaw=%2.2f yawrate=%2.2f  thro=%2.2f",(double)_att_sp.roll_body,(double)_att_sp.pitch_body,(double)_att_sp.yaw_body,(double)_att_sp.yaw_sp_move_rate,(double)_att_sp.thrust);	
-						z=0;
-					}
+					// static int z=0;
+					// z++;
+					// if(z>1200){
+					// 	warnx("att sp");
+					// 	warnx(" roll=%2.2f  pitch=%2.2f  yaw=%2.2f yawrate=%2.2f  thro=%2.2f",(double)_att_sp.roll_body,(double)_att_sp.pitch_body,(double)_att_sp.yaw_body,(double)_att_sp.yaw_sp_move_rate,(double)_att_sp.thrust);	
+					// 	z=0;
+					// }
 
 		/* reset altitude controller integral (hovering throttle) to manual throttle after manual throttle control */
 		reset_int_z_manual = _control_mode.flag_armed && _control_mode.flag_control_manual_enabled
