@@ -355,19 +355,8 @@ int telem2_app_main(int argc, char *argv[])
                         //  自稳（mode=1）    定高（mode=2）  备注：使用gear_switch  区分三种不同的定高模式
                         //  水下（mode=8）    水面（mode=4）
                         //warnx("mode = %d",mode);
-
-                        if(mode!=1){
-
-                            vcmd.param1 = 81;//用参数213会出现一个问题：切换的时候会自动解锁  参数29出现一个问题切换模式的时候自动上锁
-                            vcmd.param2 = PX4_CUSTOM_MAIN_MODE_POSCTL;
-                            vcmd.param3 = 0;
-                            vcmd.command = 176;
-                            vcmd.target_system = sys_id;
-                            vcmd.target_component = comp_id;
-                            vcmd.source_system = sys_id;
-                            vcmd.source_component = comp_id;
-
-                        }else{
+                        
+                        if (mode==1){
 
                             vcmd.param1 = 81;//用参数213会出现一个问题：切换的时候会自动解锁  参数29出现一个问题切换模式的时候自动上锁
                             vcmd.param2 = PX4_CUSTOM_MAIN_MODE_MANUAL;
@@ -378,6 +367,31 @@ int telem2_app_main(int argc, char *argv[])
                             vcmd.source_system = sys_id;
                             vcmd.source_component = comp_id;
 
+                        }
+                        else if(mode==2){
+                            vcmd.param1 = 81;//用参数213会出现一个问题：切换的时候会自动解锁  参数29出现一个问题切换模式的时候自动上锁
+                            vcmd.param2 = PX4_CUSTOM_MAIN_MODE_POSCTL;
+                            vcmd.param3 = 0;
+                            vcmd.command = 176;
+                            vcmd.target_system = sys_id;
+                            vcmd.target_component = comp_id;
+                            vcmd.source_system = sys_id;
+                            vcmd.source_component = comp_id;
+
+                        }
+                        else if(mode==4 || mode==8){
+                            vcmd.param1 = 81;//用参数213会出现一个问题：切换的时候会自动解锁  参数29出现一个问题切换模式的时候自动上锁
+                            vcmd.param2 = PX4_CUSTOM_MAIN_MODE_ALTCTL;//PX4_CUSTOM_MAIN_MODE_POSCTL;
+                            vcmd.param3 = 0;
+                            vcmd.command = 176;
+                            vcmd.target_system = sys_id;
+                            vcmd.target_component = comp_id;
+                            vcmd.source_system = sys_id;
+                            vcmd.source_component = comp_id;
+
+                        }
+                        else{
+                            
                         }
 
 
