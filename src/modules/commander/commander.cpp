@@ -1668,7 +1668,7 @@ int commander_thread_main(int argc, char *argv[])
 	}
 
 	// user adjustable duration required to assert arm/disarm via throttle/rudder stick
-	int32_t rc_arm_hyst = 15;
+	int32_t rc_arm_hyst = 30;
 	param_get(_param_rc_arm_hyst, &rc_arm_hyst);
 	rc_arm_hyst *= COMMANDER_MONITORING_LOOPSPERMSEC;
 
@@ -2748,34 +2748,34 @@ int commander_thread_main(int argc, char *argv[])
 				tune_negative(true);
 			}
 
-			// /* evaluate the main state machine according to mode switches */
-			// bool first_rc_eval = (_last_sp_man.timestamp == 0) && (sp_man.timestamp > 0);
-			// transition_result_t main_res = set_main_state_rc(&status);
+			/* evaluate the main state machine according to mode switches */
+			bool first_rc_eval = (_last_sp_man.timestamp == 0) && (sp_man.timestamp > 0);
+			transition_result_t main_res = set_main_state_rc(&status);
 
-			// /* play tune on mode change only if armed, blink LED always */
-			// if (main_res == TRANSITION_CHANGED || first_rc_eval) {
-			// 	tune_positive(armed.armed);
-			// 	main_state_changed = true;
+			/* play tune on mode change only if armed, blink LED always */
+			if (main_res == TRANSITION_CHANGED || first_rc_eval) {
+				tune_positive(armed.armed);
+				main_state_changed = true;
 
-			// } else if (main_res == TRANSITION_DENIED) {
-			// 	/* DENIED here indicates bug in the commander */
-			// 	mavlink_log_critical(&mavlink_log_pub, "main state transition denied");
-			// }
+			} else if (main_res == TRANSITION_DENIED) {
+				/* DENIED here indicates bug in the commander */
+				mavlink_log_critical(&mavlink_log_pub, "main state transition denied");
+			}
 
-			// /* check throttle kill switch */
-			// if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_ON) {
-			// 	/* set lockdown flag */
-			// 	if (!armed.lockdown) {
-			// 		mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH ENGAGED");
-			// 	}
-			// 	armed.lockdown = true;
-			// } else if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_OFF) {
-			// 	if (armed.lockdown) {
-			// 		mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH OFF");
-			// 	}
-			// 	armed.lockdown = false;
-			// }
-			// /* no else case: do not change lockdown flag in unconfigured case */
+			/* check throttle kill switch */
+			if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_ON) {
+				/* set lockdown flag */
+				if (!armed.lockdown) {
+					mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH ENGAGED");
+				}
+				armed.lockdown = true;
+			} else if (sp_man.kill_switch == manual_control_setpoint_s::SWITCH_POS_OFF) {
+				if (armed.lockdown) {
+					mavlink_log_emergency(&mavlink_log_pub, "MANUAL KILL SWITCH OFF");
+				}
+				armed.lockdown = false;
+			}
+			/* no else case: do not change lockdown flag in unconfigured case */
 
 		// } else {
 		// 	if (!status_flags.rc_input_blocked && !status.rc_signal_lost) {
@@ -4037,7 +4037,7 @@ void *commander_low_prio_loop(void *arg)
 					} else if ((int)(cmd.param4) == 2) {
 						/* RC trim calibration */
 						answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED, command_ack_pub, command_ack);
-						//calib_ret = do_trim_calibration(&mavlink_log_pub);
+						calib_ret = do_trim_calibration(&mavlink_log_pub);
 
 					} else if ((int)(cmd.param5) == 1) {
 						/* accelerometer calibration */

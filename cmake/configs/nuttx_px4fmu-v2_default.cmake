@@ -124,8 +124,8 @@ set(config_module_list
 	modules/systemlib/mixer
 	modules/uORB
 	modules/dataman
-	modules/telem2
-	modules/ms5837
+	#modules/telem2
+	#modules/ms5837
 
 	#
 	# Libraries

@@ -341,12 +341,12 @@ int telem2_app_main(int argc, char *argv[])
                     }          
 
                      manual.gear_switch=mode;
-                    if (_manual_control_pub != NULL) {
-                    	orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
+                    // if (_manual_control_pub != NULL) {
+                    // 	orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
 
-                    } else {
-                    	_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
-                    }
+                    // } else {
+                    // 	_manual_control_pub = orb_advertise(ORB_ID(manual_control_setpoint), &manual);
+                    // }
 
                     // //如果飞行模式发生了切换 发布
                     if(mode!=mode_last)
