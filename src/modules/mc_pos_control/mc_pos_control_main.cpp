@@ -1755,12 +1755,12 @@ MulticopterPositionControl::task_main()
 					/* velocity error */
 					math::Vector<3> vel_err = _vel_sp - _vel;
 
-						static int m=0;
-						m++;
-						if(m>1200){
-							warnx("--vel_err=%2.2f",vel_err);
-							m=0;
-						}
+						//static int m=0;
+						//m++;
+						//if(m>1200){
+						//	warnx("--vel_err=%2.2f",vel_err);
+						//	m=0;
+						//}
 			
 					// check if we have switched from a non-velocity controlled mode into a velocity controlled mode
 					// if yes, then correct xy velocity setpoint such that the attitude setpoint is continuous
@@ -2093,13 +2093,13 @@ MulticopterPositionControl::task_main()
 			_vel_sp_prev = _vel;
 		}
 
-		static int j=0;
-		j++;
-		if(j>1200){
-					warnx("vel sp");
-					warnx(" vx=%2.2f  vy=%2.2f  vz=%2.2f ",(double)_local_pos_sp.vx,(double)_local_pos_sp.vy,(double)_local_pos_sp.vz);	
-					j=0;
-		}
+		//static int j=0;
+		//j++;
+		//if(j>1200){
+		//			warnx("vel sp");
+		//			warnx(" vx=%2.2f  vy=%2.2f  vz=%2.2f ",(double)_local_pos_sp.vx,(double)_local_pos_sp.vy,(double)_local_pos_sp.vz);	
+		//			j=0;
+		//}
 
 
 		/* generate attitude setpoint from manual controls */

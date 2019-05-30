@@ -219,7 +219,7 @@ static bool warning_action_on = false;
 
 static struct status_flags_s status_flags = {};
 
-//static uint64_t rc_signal_lost_timestamp;		// Time at which the RC reception was lost
+static uint64_t rc_signal_lost_timestamp;		// Time at which the RC reception was lost
 
 static float avionics_power_rail_voltage;		// voltage of the avionics power rail
 
@@ -736,7 +736,7 @@ bool handle_command(struct vehicle_status_s *status_local, const struct safety_s
 			//我在telem2.c中进行模式切换　处理的不合适　在模式切换的时候会进行自动的上锁或解锁
 			//实际中肯定不能在切换模式的时候自动解锁或者上锁，上锁解锁的操作应该只由摇杆进行
 			//跟踪原因是因为在这里会根据切换模式的参数进行解锁或者上锁，这里屏蔽了　即切换模式的时候不会在解锁上锁了
-			//arming_ret = arm_disarm(cmd_arm, &mavlink_log_pub, "set mode command");
+			arming_ret = arm_disarm(cmd_arm, &mavlink_log_pub, "set mode command");
 
 			/* update home position on arming if at least 500 ms from commander start spent to avoid setting home on in-air restart */
 			if (cmd_arm && (arming_ret == TRANSITION_CHANGED) &&
@@ -1668,7 +1668,7 @@ int commander_thread_main(int argc, char *argv[])
 	}
 
 	// user adjustable duration required to assert arm/disarm via throttle/rudder stick
-	int32_t rc_arm_hyst = 30;
+	int32_t rc_arm_hyst = 100;
 	param_get(_param_rc_arm_hyst, &rc_arm_hyst);
 	rc_arm_hyst *= COMMANDER_MONITORING_LOOPSPERMSEC;
 
@@ -2615,29 +2615,33 @@ int commander_thread_main(int argc, char *argv[])
 		}
 
 
+		if (!status_flags.rc_input_blocked && sp_man.timestamp != 0 &&
+		    (hrt_absolute_time() < sp_man.timestamp + (uint64_t)(rc_loss_timeout * 1e6f))) {
 
+			if (!status_flags.rc_signal_found_once) {
+				status_flags.rc_signal_found_once = true;
+				status_changed = true;
 
+			} else {
+				if (status.rc_signal_lost) {
+					mavlink_log_info(&mavlink_log_pub, "MANUAL CONTROL REGAINED after %llums",
+							     (hrt_absolute_time() - rc_signal_lost_timestamp) / 1000);
+					status_changed = true;
+				}
+			}
 		// /* RC input check */
-		// if (!status_flags.rc_input_blocked && sp_man.timestamp != 0 &&
-		//     (hrt_absolute_time() < sp_man.timestamp + (uint64_t)(rc_loss_timeout * 1e6f))) {
-		// 	/* handle the case where RC signal was regained */
-		// 	if (!status_flags.rc_signal_found_once) {
-		// 		status_flags.rc_signal_found_once = true;
-		// 		status_changed = true;
-
-		// 	} else {
-		// 		if (status.rc_signal_lost) {
-		// 			mavlink_log_info(&mavlink_log_pub, "MANUAL CONTROL REGAINED after %llums",
-		// 					     (hrt_absolute_time() - rc_signal_lost_timestamp) / 1000);
-		// 			status_changed = true;
-		// 		}
-		// 	}
-
-		// 	status.rc_signal_lost = false;
+			status.rc_signal_lost = false;
 
 			/* check if left stick is in lower left position and we are in MANUAL, Rattitude, or AUTO_READY mode or (ASSIST mode and landed) -> disarm
 			 * do it only for rotary wings in manual mode or fixed wing if landed */
-			if (sp_man.r < -0.9f && sp_man.z < 0.1f) {
+			if ((status.is_rotary_wing || (!status.is_rotary_wing && land_detector.landed)) && status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF &&
+			    (status.arming_state == vehicle_status_s::ARMING_STATE_ARMED || status.arming_state == vehicle_status_s::ARMING_STATE_ARMED_ERROR) &&
+			    (internal_state.main_state == commander_state_s::MAIN_STATE_MANUAL ||
+			    	internal_state.main_state == commander_state_s::MAIN_STATE_ACRO ||
+			    	internal_state.main_state == commander_state_s::MAIN_STATE_STAB ||
+			    	internal_state.main_state == commander_state_s::MAIN_STATE_RATTITUDE ||
+			    	land_detector.landed) &&
+			    sp_man.r < -STICK_ON_OFF_LIMIT && sp_man.z < 0.1f) {
 
 				if (stick_off_counter > rc_arm_hyst) {
 					/* disarm to STANDBY if ARMED or to STANDBY_ERROR if ARMED_ERROR */
@@ -2670,10 +2674,7 @@ int commander_thread_main(int argc, char *argv[])
 			}
 
 			//warnx("r=%2.2f ",(double)sp_man.r);
-
-
-			/* check if left stick is in lower right position and we're in MANUAL mode -> arm */
-			if (sp_man.r > 0.9f && sp_man.z < 0.1f ) {
+			if (sp_man.r > STICK_ON_OFF_LIMIT && sp_man.z < 0.1f && status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF ) {
 				if (stick_on_counter > rc_arm_hyst) {
 
 					/* we check outside of the transition function here because the requirement
@@ -2714,14 +2715,10 @@ int commander_thread_main(int argc, char *argv[])
 							print_reject_arm("NOT ARMING: Preflight checks failed");
 						}
 					}
-					else{
-						warnx(" error");
-					}
 					stick_on_counter = 0;
 
 				} else {
 					stick_on_counter++;
-					//warnx("%d",stick_on_counter);
 				}
 
 			} else {
@@ -2777,14 +2774,14 @@ int commander_thread_main(int argc, char *argv[])
 			}
 			/* no else case: do not change lockdown flag in unconfigured case */
 
-		// } else {
-		// 	if (!status_flags.rc_input_blocked && !status.rc_signal_lost) {
-		// 		mavlink_log_critical(&mavlink_log_pub, "MANUAL CONTROL LOST (at t=%llums)", hrt_absolute_time() / 1000);
-		// 		status.rc_signal_lost = true;
-		// 		rc_signal_lost_timestamp = sp_man.timestamp;
-		// 		status_changed = true;
-		// 	}
-		// }
+		} else {
+			if (!status_flags.rc_input_blocked && !status.rc_signal_lost) {
+				mavlink_log_critical(&mavlink_log_pub, "MANUAL CONTROL LOST (at t=%llums)", hrt_absolute_time() / 1000);
+				status.rc_signal_lost = true;
+				rc_signal_lost_timestamp = sp_man.timestamp;
+				status_changed = true;
+			}
+		}
 
 		/* data links check */
 		bool have_link = false;
@@ -3027,12 +3024,6 @@ int commander_thread_main(int argc, char *argv[])
 
 			status.timestamp = now;
 			orb_publish(ORB_ID(vehicle_status), status_pub, &status);
-
-			// static uint8_t arming_state_copy=0;
-			// if(arming_state_copy!=status.arming_state){
-			// 	warnx("---------arming_state=%d",status.arming_state);
-			// 	arming_state_copy=status.arming_state;
-			// }
 				
 			armed.timestamp = now;
 
