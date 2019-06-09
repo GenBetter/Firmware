@@ -1151,11 +1151,11 @@ MulticopterAttitudeControl::task_main()
 					
 					//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 					//在mixer.cpp中限制pwm输出范围为1000-1500
-					_actuators.control[4] =0.1f;
+					_actuators.control[4] =0.8f;
 
-					_actuators.control[5]=-1;
-					_actuators.control[6]=0;
-					_actuators.control[7]=0;
+					_actuators.control[5] =_manual_control_sp.x*0.1f;//电机
+					_actuators.control[6] =_manual_control_sp.y*0.3;//舵机
+					_actuators.control[7] =_manual_control_sp.r*0.3;//舵机 
 
 				}
 
