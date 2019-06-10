@@ -2674,7 +2674,7 @@ int commander_thread_main(int argc, char *argv[])
 			}
 
 			//warnx("r=%2.2f ",(double)sp_man.r);
-			if (sp_man.r > STICK_ON_OFF_LIMIT && sp_man.z < 0.6f&& sp_man.z > 0.4f && status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF ) {
+			if (sp_man.r > STICK_ON_OFF_LIMIT && sp_man.z < 0.6f&& sp_man.z > 0.45f && status.rc_input_mode != vehicle_status_s::RC_IN_MODE_OFF ) {
 				if (stick_on_counter > rc_arm_hyst) {
 
 					/* we check outside of the transition function here because the requirement

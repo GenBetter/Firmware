@@ -1154,8 +1154,8 @@ MulticopterAttitudeControl::task_main()
 					_actuators.control[4] =0.8f;
 
 					_actuators.control[5] =_manual_control_sp.x*0.1f;//电机
-					_actuators.control[6] =_manual_control_sp.y*0.3;//舵机
-					_actuators.control[7] =_manual_control_sp.r*0.3;//舵机 
+					_actuators.control[6] =_manual_control_sp.y*0.3f;//舵机
+					_actuators.control[7] =_manual_control_sp.r*0.3f;//舵机 
 
 				}
 
