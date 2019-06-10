@@ -2121,6 +2121,7 @@ MulticopterPositionControl::task_main()
 				const float yaw_offset_max = yaw_rate_max / _params.mc_att_yaw_p;
 
 				_att_sp.yaw_sp_move_rate = _manual.r * yaw_rate_max;
+				if(_vehicle_status.nav_state==15){_att_sp.yaw_sp_move_rate=0;}//普通遥控器下 水下STAB 遥控器不控偏航
 				float yaw_target = _wrap_pi(_att_sp.yaw_body + _att_sp.yaw_sp_move_rate * dt);
 				float yaw_offs = _wrap_pi(yaw_target - _yaw);
 
@@ -2159,6 +2160,14 @@ MulticopterPositionControl::task_main()
 					_att_sp.pitch_body = -_manual.x * _params.man_pitch_max;
 					//warnx("roll=%2.2f  pitch=%2.2f ",(double)_att_sp.roll_body,(double)_att_sp.pitch_body);
 				}
+				
+				if(_vehicle_status.nav_state==15)
+				{
+					_att_sp.roll_body = 0;
+					_att_sp.pitch_body = 0;//普通遥控器下 水下STAB 遥控器不控
+				
+				}
+				
 
 				/* only if optimal recovery is not used, modify roll/pitch */
 				if (_params.opt_recover <= 0) {
