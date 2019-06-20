@@ -1154,6 +1154,10 @@ MulticopterAttitudeControl::task_main()
 							
 							//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
 							//在mixer.cpp中限制pwm输出范围为1000-1500
+
+							//空中模式 地面站需要设置为MANUAL模式
+							//此时四个遥控控制飞机的横滚俯仰偏航和油门
+							//泵喷和舵机不控
 							_actuators.control[4] =0.1f;
 
 							_actuators.control[5] =0;//电机
@@ -1172,11 +1176,12 @@ MulticopterAttitudeControl::task_main()
 							//_actuators.control[1] = math::constrain(_actuators.control[1], -0.3f, 0.3f);
 							//_actuators.control[2] = math::constrain(_actuators.control[2], -0.3f, 0.3f);
 							
-							//借此变量 配合quad_x.main.mix脚本 以及mixer.cpp文件 限制最终输出的PWM范围，已经实测有效
-							//在mixer.cpp中限制pwm输出范围为1000-1500
+							//水下模式 地面站设置为STAB模式
+							//此模式下飞机自己保持姿态平稳 横滚俯仰偏航不受控制，油门遥控控制四个电机的正反转转速
+							//剩下的三个遥控 控制泵喷的速度和舵机
 							_actuators.control[4] =0.8f;
 
-							_actuators.control[5] =_manual_control_sp.x*0.1f;//电机
+							_actuators.control[5] =_manual_control_sp.x*0.4f;//泵喷电机 遥控器控制的缩放
 							_actuators.control[6] =(_manual_control_sp.y)*0.4f+0.3f;//左右舵机
 							_actuators.control[7] =(_manual_control_sp.r-0.1f)*0.4f;//上下舵机 
 
